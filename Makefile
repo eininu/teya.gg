@@ -17,3 +17,12 @@ down:
 else
 $(error Unkonwn branch: $(BRANCH))
 endif
+
+.PHONY: front back
+
+front:
+	cd frontend && ng serve --proxy-config proxy.conf.json --hmr --port 80
+
+back:
+	cd backend && nest start --watch
+
