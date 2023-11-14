@@ -1,0 +1,27 @@
+name: Node.js CI - Deploy to Development
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 19.x ]
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: dockeruser
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/dockeruser/dev/teya.gg
+            git checkout dev
+            git pull
+            make down
+            make up

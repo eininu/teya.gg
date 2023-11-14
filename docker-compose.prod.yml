@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  frontend:
+    restart: unless-stopped
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+  backend:
+    restart: unless-stopped
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - MY_ENVIRONMENT=Prod
+
+  nginx:
+    image: nginx:1.25.3
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+      args:
+        BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD:-123}
+    ports:
+      - "80:80"
+      - "443:443"
