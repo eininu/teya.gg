@@ -17,8 +17,8 @@ Front: teya.gg, localhost
 Back: teya.gg/api/, localhost/api/
 
 ### Dev Branch
-Front: teya.gg:81, localhost:81
-Back: teya.gg:81/api/, localhost:81/api/
+Front: teya.gg:8080, localhost:8080
+Back: teya.gg:8080/api/, localhost:8080/api/
 
 For ssl - 8443 is alternative 443 port (better port for cloudflare)
 

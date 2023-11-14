@@ -23,5 +23,5 @@ services:
       args:
         BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD:-123}
     ports:
-      - "81:80"
+      - "8080:80"
       - "8443:443"
