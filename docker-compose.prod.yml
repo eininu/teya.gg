@@ -13,7 +13,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      - MY_ENVIRONMENT=Prod
+      - MY_ENVIRONMENT=Production
 
   nginx:
     image: nginx:1.25.3
