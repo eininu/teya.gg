@@ -14,6 +14,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - MY_ENVIRONMENT=Development
+    depends_on:
+        - db
 
   nginx:
     image: nginx:1.25.3
@@ -25,3 +27,15 @@ services:
     ports:
       - "8080:80"
       - "8443:443"
+
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"

@@ -14,8 +14,9 @@ make down
 ## Development Mode (HMR)
 
 ```Development
-make front
+make db
 make back
+make front
 ```
 
 ### Prod Branch
@@ -32,6 +33,8 @@ For ssl - 8443 is alternative 443 port (better port for cloudflare)
 ### Development
 Front: localhost
 Back: localhost/api/
+
+Postgres: localhost:5435
 ---
 Default Basic Auth: 123:123
 For change basic auth, change .env file

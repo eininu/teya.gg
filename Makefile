@@ -26,3 +26,5 @@ front:
 back:
 	cd backend && nest start --watch
 
+db:
+	docker-compose -p teya_prod -f docker-compose.dev.yml up --build db
