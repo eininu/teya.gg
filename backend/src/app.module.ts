@@ -3,7 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WebsitesModule } from './websites/websites.module';
-
+import { ScheduleModule } from '@nestjs/schedule';
+import { SchedulerService } from './scheduler/scheduler.service';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -17,8 +18,9 @@ import { WebsitesModule } from './websites/websites.module';
       synchronize: true,
     }),
     WebsitesModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SchedulerService],
 })
 export class AppModule {}
