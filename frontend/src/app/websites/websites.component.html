@@ -1,0 +1,8 @@
+<ul>
+  <li *ngFor="let website of websitesData">
+    <span>{{ website.id }}: {{ website.domainName }}</span>
+    <span [ngClass]="{'banned': website.isDomainRoskomnadzorBanned, 'not-banned': !website.isDomainRoskomnadzorBanned}">
+      {{ website.isDomainRoskomnadzorBanned ? 'Banned' : 'Not Banned' }}
+    </span>
+  </li>
+</ul>
