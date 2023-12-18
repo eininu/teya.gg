@@ -9,7 +9,7 @@
   <li *ngFor="let website of websitesData">
     <span [ngClass]="{'banned': website.isDomainRoskomnadzorBanned, 'not-banned': !website.isDomainRoskomnadzorBanned}">{{ website.domainName }}</span>
     <span >
-      {{ website.isDomainRoskomnadzorBanned ? ' (Banned by Roskomnadzor )' : '' }}
+      {{ website.isDomainRoskomnadzorBanned ? ' (Banned by Roskomnadzor)' : '' }}
     </span>
   </li>
 </ul>
