@@ -15,24 +15,24 @@ export class WebsitesController {
   constructor(private websitesService: WebsitesService) {}
 
   @Get()
-  findAll(): Website[] {
-    return this.websitesService.findAll();
+  async findAll(): Promise<Website[]> {
+    return await this.websitesService.findAll();
   }
 
   @Post()
-  create(@Body('domainName') domainName: string): {
+  async create(@Body('domainName') domainName: string): Promise<{
     success: boolean;
     message: string;
     website?: Website;
-  } {
-    return this.websitesService.create(domainName);
+  }> {
+    return await this.websitesService.create(domainName);
   }
 
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number): {
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<{
     deleted: boolean;
     message: string;
-  } {
-    return this.websitesService.delete(id);
+  }> {
+    return await this.websitesService.delete(id);
   }
 }

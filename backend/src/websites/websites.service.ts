@@ -1,40 +1,49 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Website } from './entities/website.entity';
+import * as punycode from 'punycode';
 
 @Injectable()
 export class WebsitesService {
-  private websites: Website[] = [];
+  constructor(
+    @InjectRepository(Website)
+    private websiteRepository: Repository<Website>,
+  ) {}
 
-  findAll(): Website[] {
-    return this.websites;
+  async findAll(): Promise<Website[]> {
+    return this.websiteRepository.find();
   }
 
-  create(domainName: string): {
+  async create(domainName: string): Promise<{
     success: boolean;
     message: string;
     website?: Website;
-  } {
-    const existingWebsite = this.websites.find(
-      (w) => w.domainName === domainName,
-    );
+  }> {
+    const punycodeDomainName = punycode.toASCII(domainName);
+
+    const existingWebsite = await this.websiteRepository.findOne({
+      where: { domainName: punycodeDomainName },
+    });
 
     if (existingWebsite) {
       return {
         success: false,
-        message: `Website with domain name '${domainName}' already exists.`,
+        message: `Website with domain name '${punycodeDomainName}' already exists.`,
       };
     }
 
-    const website: Website = { id: Date.now(), domainName };
-    this.websites.push(website);
+    const website = this.websiteRepository.create({
+      domainName: punycodeDomainName,
+    });
+    await this.websiteRepository.save(website);
     return { success: true, message: 'Website created successfully.', website };
   }
 
-  delete(id: number): { deleted: boolean; message: string } {
-    const initialLength = this.websites.length;
-    this.websites = this.websites.filter((w) => w.id !== id);
+  async delete(id: number): Promise<{ deleted: boolean; message: string }> {
+    const deleteResult = await this.websiteRepository.delete(id);
 
-    if (this.websites.length < initialLength) {
+    if (deleteResult.affected > 0) {
       return {
         deleted: true,
         message: `Website with id ${id} has been deleted.`,

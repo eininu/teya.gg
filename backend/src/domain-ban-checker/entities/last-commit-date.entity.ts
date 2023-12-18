@@ -1,13 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class Website {
+export class LastCommitDate {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  domainName: string;
-
-  @Column({ default: false })
-  isDomainRoskomnadzorBanned: boolean;
+  date: Date;
 }

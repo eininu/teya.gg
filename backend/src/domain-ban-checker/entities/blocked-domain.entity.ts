@@ -1,13 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class Website {
+export class BlockedDomain {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'text', nullable: true })
   domainName: string;
-
-  @Column({ default: false })
-  isDomainRoskomnadzorBanned: boolean;
 }
