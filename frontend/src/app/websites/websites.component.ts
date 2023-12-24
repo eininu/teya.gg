@@ -22,7 +22,6 @@ export class WebsitesComponent implements OnInit {
     console.log(webSitesService.test());
     const observable2 = webSitesService.getSomeData();
 
-    observable2;
     observable2
       .pipe(
         map((data: Website[]) =>
