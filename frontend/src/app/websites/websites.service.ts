@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-
+import { Website } from './website.interface';
 @Injectable({
   providedIn: 'root',
 })
@@ -12,6 +12,6 @@ export class WebsitesService {
   }
 
   getSomeData() {
-    return this.http.get('/api/websites');
+    return this.http.get<Website[]>('/api/websites');
   }
 }

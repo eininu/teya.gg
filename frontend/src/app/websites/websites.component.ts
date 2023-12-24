@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { WebsitesService } from './websites.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { map } from 'rxjs';
+import * as punycode from 'punycode';
+import { Website } from './website.interface';
+
 @Component({
   selector: 'app-websites',
   standalone: true,
@@ -19,10 +22,31 @@ export class WebsitesComponent implements OnInit {
     console.log(webSitesService.test());
     const observable2 = webSitesService.getSomeData();
 
-    observable2.pipe(map((data) => data)).subscribe((parsedData) => {
-      this.websitesData = parsedData;
-      console.log(parsedData);
-    });
+    observable2;
+    observable2
+      .pipe(
+        map((data: Website[]) =>
+          data.map((item) => {
+            if (item.domainName.startsWith('xn--')) {
+              try {
+                // Декодируем имя домена с использованием punycode
+                item.domainName = punycode.toUnicode(item.domainName);
+              } catch (e) {
+                console.error(`Error decoding ${item.domainName}: ${e}`);
+              }
+            }
+            return item;
+          }),
+        ),
+      )
+      .subscribe(
+        (parsedData: Website[]) => {
+          this.websitesData = parsedData;
+        },
+        (error) => {
+          console.error('Error fetching data: ', error);
+        },
+      );
   }
 
   ngOnInit() {
