@@ -5,11 +5,24 @@
   }
 </style>
 
-<ul>
-  <li *ngFor="let website of websitesData">
-    <span [ngClass]="{'banned': website.isDomainRoskomnadzorBanned, 'not-banned': !website.isDomainRoskomnadzorBanned}">{{ website.domainName }}</span>
-    <span >
+<!-- Placeholder -->
+<div
+  class="flex items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 py-14 text-gray-400 dark:border-gray-700 dark:bg-gray-800"
+>
+  <ul>
+    <li *ngFor="let website of websitesData">
+      <span [ngClass]="{'banned': website.isDomainRoskomnadzorBanned, 'not-banned': !website.isDomainRoskomnadzorBanned}">{{ website.domainName }}</span>
+      <span >
       {{ website.isDomainRoskomnadzorBanned ? ' (Banned by Roskomnadzor)' : '' }}
     </span>
-  </li>
-</ul>
+    </li>
+  </ul>
+</div>
+
+<!--
+
+ADD YOUR MAIN CONTENT ABOVE
+
+-->
+
+
