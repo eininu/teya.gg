@@ -10,6 +10,7 @@ import { BlockedDomain } from './entities/blocked-domain.entity';
 import * as csvParser from 'csv-parser';
 import * as punycode from 'punycode';
 import * as iconv from 'iconv-lite';
+import { Readable } from 'stream';
 @Injectable()
 export class DomainBanCheckerService {
   private readonly logger = new Logger(DomainBanCheckerService.name);
@@ -25,7 +26,7 @@ export class DomainBanCheckerService {
     private websiteRepository: Repository<Website>,
   ) {}
 
-  @Cron('0 */15 * * * *')
+  @Cron(CronExpression.EVERY_MINUTE) // '0 */15 * * * *'
   async handleCron() {
     await this.cronTask();
   }
@@ -85,55 +86,57 @@ export class DomainBanCheckerService {
         const csvUrl =
           'https://raw.githubusercontent.com/zapret-info/z-i/master/dump.csv';
         const response = await this.httpService
-          .get(csvUrl, { responseType: 'stream' })
+          .get(csvUrl, { responseType: 'arraybuffer' })
           .toPromise();
 
         await this.blockedDomainRepository.clear();
         this.logger.log('Existing data cleared from the database');
 
-        const seenDomains = new Set();
-        const batchSize = 1000;
-        let batch = [];
+        const bulkData = [];
+        const bulkSize = 1000; // Размер пакета для сохранения
 
-        response.data
+        // Преобразование данных из Windows-1251 в UTF-8
+        const buffer = Buffer.from(response.data);
+        const utf8Stream = Readable.from(iconv.decode(buffer, 'windows-1251'));
+
+        utf8Stream
           .pipe(
             csvParser({
               separator: ';',
               headers: [
-                'ip',
+                'ipRanges',
                 'domainName',
-                'url',
-                'court',
-                'courtOrder',
+                'additionalInfo1',
+                'regulator',
+                'orderRef',
                 'decisionDate',
               ],
             }),
           )
           .on('data', (data) => {
-            if (
-              data.domainName &&
-              typeof data.domainName === 'string' &&
-              data.domainName.trim() !== ''
-            ) {
-              const domainNamePuny = punycode.toASCII(data.domainName.trim());
-              if (!seenDomains.has(domainNamePuny)) {
-                seenDomains.add(domainNamePuny);
-                batch.push({ domainName: domainNamePuny });
+            // Добавляем только интересующее нас поле - domainName
+            if (data.domainName) {
+              bulkData.push(
+                this.blockedDomainRepository.create({
+                  domainName: data.domainName,
+                }),
+              );
+            }
 
-                if (batch.length >= batchSize) {
-                  this.blockedDomainRepository.save(batch);
-                  batch = [];
-                }
-              }
+            if (bulkData.length >= bulkSize) {
+              utf8Stream.pause(); // Останавливаем поток данных
+              this.blockedDomainRepository
+                .save(bulkData.splice(0, bulkSize))
+                .then(() => utf8Stream.resume()) // Продолжаем после сохранения
+                .catch((error) => {
+                  this.logger.error('Error saving bulk data', error);
+                  reject(error); // Отклоняем обещание при ошибке
+                });
             }
           })
-          .on('error', (error) => {
-            this.logger.error('Error processing CSV data', error);
-            reject(error);
-          })
           .on('end', async () => {
-            if (batch.length > 0) {
-              await this.blockedDomainRepository.save(batch);
+            if (bulkData.length > 0) {
+              await this.blockedDomainRepository.save(bulkData); // Сохраняем оставшиеся данные
             }
             this.logger.log(
               'CSV data successfully processed and saved to the database',
@@ -146,6 +149,7 @@ export class DomainBanCheckerService {
       }
     });
   }
+
   async saveLastCommitDate(): Promise<LastCommitDate> {
     const lastCommitDate = this.lastCommitDateRepository.create({
       id: 1,
