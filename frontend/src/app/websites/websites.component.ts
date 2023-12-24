@@ -29,7 +29,6 @@ export class WebsitesComponent implements OnInit {
           data.map((item) => {
             if (item.domainName.startsWith('xn--')) {
               try {
-                // Декодируем имя домена с использованием punycode
                 item.domainName = punycode.toUnicode(item.domainName);
               } catch (e) {
                 console.error(`Error decoding ${item.domainName}: ${e}`);
