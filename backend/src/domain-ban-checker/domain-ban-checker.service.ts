@@ -26,7 +26,7 @@ export class DomainBanCheckerService {
     private websiteRepository: Repository<Website>,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE) // '0 */15 * * * *'
+  @Cron('0 */15 * * * *') // CronExpression.EVERY_MINUTE
   async handleCron() {
     await this.cronTask();
   }
