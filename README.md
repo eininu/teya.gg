@@ -131,5 +131,5 @@ make up
 
 Check that everything is working:
 ```
-docker ps
+docker ps -a
 ```
