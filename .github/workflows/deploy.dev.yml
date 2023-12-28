@@ -17,10 +17,10 @@ jobs:
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.REMOTE_HOST }}
-          username: dockeruser
+          username: teya
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/dockeruser/dev/teya.gg
+            cd /home/teya/dev/teya.gg
             git checkout dev
             git pull
             make down
