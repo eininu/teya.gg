@@ -133,3 +133,17 @@ Check that everything is working:
 ```
 docker ps -a
 ```
+
+## GitHub Workflow Setup Instructions
+
+1. Generate SSH key (from your local machine, not remote server):
+```
+ssh-keygen
+```
+
+2. Save id_rsa key to secrets in GitHub repository settings named 'SSH_PRIVATE_KEY'
+3. Add 'REMOTE_HOST' to secrets in GitHub repository settings with your server IP
+4. Save id_rsa.pub key to ~/.ssh/authorized_keys on your server
+```
+nano ~/.ssh/authorized_keys
+```
