@@ -116,8 +116,7 @@ sudo apt-get -y install make
 
 #### Prod
 ```
-cd
-mkdir prod && cd prod
+cd && mkdir prod && cd prod
 git clone https://github.com/eininu/teya.gg.git && cd teya.gg
 make up
 ```
