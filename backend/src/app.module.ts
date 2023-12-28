@@ -11,11 +11,11 @@ import { DomainBanCheckerModule } from './domain-ban-checker/domain-ban-checker.
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost', // replace with your Docker PostgreSQL container IP if not running on localhost
-      port: 5435, // replace with your PostgreSQL running port
-      username: 'test', // replace with your PostgreSQL username
-      password: 'test', // replace with your PostgreSQL password
-      database: 'test', // replace with your PostgreSQL database name
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT, 10) || 5435,
+      username: process.env.DB_USERNAME || 'test',
+      password: process.env.DB_PASSWORD || 'test',
+      database: process.env.DB_DATABASE || 'test',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),

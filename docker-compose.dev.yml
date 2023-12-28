@@ -14,6 +14,11 @@ services:
       dockerfile: Dockerfile
     environment:
       - MY_ENVIRONMENT=Development
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=test
+      - DB_PASSWORD=test
+      - DB_DATABASE=test
     depends_on:
       - db
 
