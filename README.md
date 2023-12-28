@@ -137,6 +137,9 @@ docker ps -a
 ## GitHub Workflow Setup Instructions
 
 1. Generate SSH key (from your local machine, not remote server):
+
+! Set custom name for key
+
 ```
 ssh-keygen
 ```
