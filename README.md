@@ -128,3 +128,8 @@ git clone https://github.com/eininu/teya.gg.git && cd teya.gg
 git checkout dev
 make up
 ```
+
+Check that everything is working:
+```
+docker ps
+```
