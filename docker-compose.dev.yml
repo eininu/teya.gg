@@ -6,6 +6,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    networks:
+      - teya-dev-network
 
   backend:
     restart: unless-stopped
@@ -21,6 +23,8 @@ services:
       - DB_DATABASE=test
     depends_on:
       - db
+    networks:
+      - teya-dev-network
 
   nginx:
     image: nginx:1.25.3
@@ -35,6 +39,8 @@ services:
     depends_on:
       - backend
     command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; nginx -g 'daemon off;'"]
+    networks:
+      - teya-dev-network
 
   db:
     image: postgres:latest
@@ -47,3 +53,10 @@ services:
       - ./data/db:/var/lib/postgresql/data
     ports:
       - "5435:5432"
+    networks:
+      - teya-dev-network
+
+networks:
+  teya-dev-network:
+    name: teya-dev-network
+    driver: bridge
