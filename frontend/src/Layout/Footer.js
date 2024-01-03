@@ -13,6 +13,7 @@ export default function Footer() {
               href="/"
               className="font-medium text-blue-600 hover:text-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
               target="_blank"
+              rel={"noopener noreferrer"}
             >
               {process.env.REACT_APP_COMPANY_NAME || "Company"}
             </a>{" "}
@@ -39,6 +40,7 @@ export default function Footer() {
                 href="https://tailkit.com"
                 className="font-medium text-blue-600 hover:text-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
                 target="_blank"
+                rel={"noopener noreferrer"}
               >
                 Tailkit
               </a>
