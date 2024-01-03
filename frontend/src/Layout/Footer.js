@@ -10,16 +10,16 @@ export default function Footer() {
         <div className="container mx-auto flex flex-col px-4 text-center text-sm md:flex-row md:justify-between md:text-left lg:px-8 xl:max-w-7xl">
           <div className="pb-1 pt-4 md:pb-4">
             <a
-              href="https://tailkit.com"
+              href="/"
               className="font-medium text-blue-600 hover:text-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
               target="_blank"
             >
-              Tailkit
+              {process.env.REACT_APP_COMPANY_NAME || "Company"}
             </a>{" "}
             ©
           </div>
           <div className="inline-flex items-center justify-center pb-4 pt-1 md:pt-4">
-            <span>Crafted with</span>
+            <span>UI with</span>
             <svg
               fill="currentColor"
               viewBox="0 0 20 20"
@@ -36,11 +36,11 @@ export default function Footer() {
               {" "}
               by{" "}
               <a
-                href="https://pixelcave.com"
+                href="https://tailkit.com"
                 className="font-medium text-blue-600 hover:text-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
                 target="_blank"
               >
-                pixelcave
+                Tailkit
               </a>
             </span>
           </div>

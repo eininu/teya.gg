@@ -35,7 +35,7 @@ export default function Header() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Company</span>
+                <span>{process.env.REACT_APP_COMPANY_NAME || "Company"}</span>
               </a>
               {/* END Logo */}
             </div>
