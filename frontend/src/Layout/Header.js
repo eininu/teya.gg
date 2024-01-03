@@ -1,7 +1,4 @@
 import { Fragment, useState } from "react";
-
-// Headless UI, for more info and examples you can check out https://github.com/tailwindlabs/headlessui
-import { Menu, Transition } from "@headlessui/react";
 import { useLocation } from "react-router-dom";
 
 export default function Header() {
