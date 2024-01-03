@@ -12,15 +12,17 @@ export default function Websites() {
 
   return (
     <div>
-      {websites.map((website) => (
-        <div key={website.id}>
-          {website.isDomainRoskomnadzorBanned ? (
-            <s>{website.domainName}</s>
-          ) : (
-            <span>{website.domainName}</span>
-          )}
-        </div>
-      ))}
+      {websites.length === 0 && <div>No websites found.</div>}
+      {websites.length > 0 &&
+        websites.map((website) => (
+          <div key={website.id}>
+            {website.isDomainRoskomnadzorBanned ? (
+              <s>{website.domainName}</s>
+            ) : (
+              <span>{website.domainName}</span>
+            )}
+          </div>
+        ))}
     </div>
   );
 }
