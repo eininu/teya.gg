@@ -21,7 +21,7 @@ endif
 .PHONY: front back
 
 front:
-	cd frontend && ng serve --proxy-config proxy.conf.json --hmr --port 80
+	cd frontend && set PORT=80 && npm run start
 
 back:
 	cd backend && nest start --watch
