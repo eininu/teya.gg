@@ -41,7 +41,9 @@ export class DomainBanCheckerService {
 
   // Check if data need to be updated by comparing last commit date from repo with last commit date from database
   lastCommitDateFromRepo: Date;
-  async checkIfDataNeedsToBeUpdated(): Promise<boolean> {
+  async checkIfDataNeedsToBeUpdated(
+    isManual: boolean = false,
+  ): Promise<boolean> {
     const getLastCommitDateFromRepo = async (): Promise<Date> => {
       try {
         const response = await this.httpService
@@ -74,8 +76,9 @@ export class DomainBanCheckerService {
     }
 
     return (
+      isManual ||
       this.lastCommitDateFromRepo.getTime() !==
-      lastCommitDateFromDatabase.date.getTime()
+        lastCommitDateFromDatabase.date.getTime()
     );
   }
 

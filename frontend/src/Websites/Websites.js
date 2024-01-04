@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 export default function Websites() {
   const [websites, setWebsites] = useState([]);
   const [newDomainName, setNewDomainName] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchWebsites();
@@ -37,6 +38,17 @@ export default function Websites() {
       .catch((error) => console.error("Error while adding website:", error));
   };
 
+  const runCronTask = () => {
+    setIsUpdating(true);
+    fetch("/api/domain-ban-checker/run-cron-task")
+      .then(() => {
+        fetchWebsites(); // Reload the list of sites after adding
+      })
+      .catch((error) => console.error("Error while running cron task:", error))
+      .finally(() => {
+        setIsUpdating(false);
+      });
+  };
   return (
     <div className="p-4">
       {websites.length === 0 && (
@@ -61,7 +73,7 @@ export default function Websites() {
             </button>
           </div>
         ))}
-      <form onSubmit={addWebsite} className="mt-4">
+      <form onSubmit={addWebsite} className="mt-4 flex items-center">
         <input
           type="text"
           value={newDomainName}
@@ -74,6 +86,13 @@ export default function Websites() {
           className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
         >
           Add
+        </button>
+        <button
+          onClick={runCronTask}
+          type="button"
+          className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out ml-4"
+        >
+          {isUpdating ? "Loading..." : "Run cron task"}
         </button>
       </form>
     </div>
