@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import punycode from "punycode";
 export default function Websites() {
   const [websites, setWebsites] = useState([]);
   const [newDomainName, setNewDomainName] = useState("");
@@ -12,7 +12,13 @@ export default function Websites() {
   const fetchWebsites = () => {
     fetch("/api/websites")
       .then((response) => response.json())
-      .then((data) => setWebsites(data))
+      .then((data) => {
+        const convertedData = data.map((website) => ({
+          ...website,
+          domainName: punycode.toUnicode(website.domainName),
+        }));
+        setWebsites(convertedData);
+      })
       .catch((error) => console.error("Error while receiving data:", error));
   };
 
