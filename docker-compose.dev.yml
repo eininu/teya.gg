@@ -25,7 +25,6 @@ services:
       - DB_DATABASE=test
     depends_on:
       - db
-      - nginx
     networks:
       - teya-dev-network
 
