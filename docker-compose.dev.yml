@@ -25,6 +25,8 @@ services:
       - DB_DATABASE=test
     depends_on:
       - db
+    links:
+      - db
     networks:
       - teya-dev-network
 
@@ -54,10 +56,20 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
-      - "5435:5432"
+      - "5432:5432"
     networks:
       - teya-dev-network
     hostname: db
+
+  migration:
+    image: backend:latest
+    command: [ "./wait-for-it.sh", "-t", "30", "127.0.0.1:5432", "--", "npm", "run", "typeorm", "migration:run" ]
+    links:
+      - db
+    depends_on:
+      - db
+    networks:
+      - teya-dev-network
 
 networks:
   teya-dev-network:
