@@ -110,17 +110,6 @@ usermod -aG sudo teya
 usermod -aG docker teya
 su - teya
 sudo apt-get -y install make
-
-sudo apt-get -y install npm
-
-mkdir ~/.npm-global
-npm config set prefix '~/.npm-global'
-echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
-source ~/.bashrc
-
-npm install -g -y @nestjs/cli
-
-nest -v
 ```
 
 ### Clone repository, run docker compose
