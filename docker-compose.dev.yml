@@ -57,6 +57,7 @@ services:
       - "5435:5432"
     networks:
       - teya-dev-network
+    hostname: db
 
 networks:
   teya-dev-network:
