@@ -118,7 +118,9 @@ npm config set prefix '~/.npm-global'
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
-npm install -g @nestjs/cli
+npm install -g -y @nestjs/cli
+
+nest -v
 ```
 
 ### Clone repository, run docker compose
