@@ -25,6 +25,8 @@ services:
       - DB_DATABASE=test
     depends_on:
       - db
+    links:
+      - db
     networks:
       - teya-dev-network
 
@@ -54,7 +56,24 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
-      - "5435:5432"
+      - "5432:5432"
+    networks:
+      - teya-dev-network
+    hostname: db
+
+  migration:
+    image: backend:latest
+    container_name: migration
+    command: >
+      /bin/sh -c "while ! /usr/local/bin/wait-for-it.sh db:5432 -t 30; do
+          echo 'Waiting for database availability...';
+          sleep 5;
+      done;
+      npm run typeorm migration:run"
+    links:
+      - db
+    depends_on:
+      - db
     networks:
       - teya-dev-network
 
