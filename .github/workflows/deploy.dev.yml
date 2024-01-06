@@ -25,4 +25,3 @@ jobs:
             git pull
             make down
             make up
-            make migration-up
