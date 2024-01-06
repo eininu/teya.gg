@@ -150,3 +150,12 @@ ssh-keygen
 ```
 nano ~/.ssh/authorized_keys
 ```
+
+## Migrations
+```
+make migration-generate InitialCommit
+```
+
+```
+make migration-up
+```

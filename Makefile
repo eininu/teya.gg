@@ -28,3 +28,17 @@ back:
 
 db:
 	docker-compose -p teya_dev -f docker-compose.dev.yml up --build db
+
+# migrations
+#migration-new:
+#	cd backend && npm run build && typeorm migration:create ./src/migrations/$(filter-out $@,$(MAKECMDGOALS))
+
+migration-generate:
+	cd backend && npm run typeorm migration:generate ./src/migrations/$(filter-out $@,$(MAKECMDGOALS))  && npm run build
+
+migration-up:
+	cd backend && npm run build && npm run typeorm migration:run
+
+migration-down:
+	cd backend && npm run build && npm run typeorm migration:revert
+
