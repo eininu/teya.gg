@@ -18,11 +18,11 @@ services:
       dockerfile: Dockerfile
     environment:
       - MY_ENVIRONMENT=Development
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USERNAME=test
-      - DB_PASSWORD=test
-      - DB_DATABASE=test
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USERNAME=${DB_USERNAME:-test}
+      - DB_PASSWORD=${DB_PASSWORD:-test}
+      - DB_DATABASE=${DB_DATABASE:-test}
     depends_on:
       - db
     links:
@@ -50,9 +50,9 @@ services:
     image: postgres:latest
     restart: unless-stopped
     environment:
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-      POSTGRES_DB: test
+      POSTGRES_USER: ${DB_USERNAME:-test}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-test}
+      POSTGRES_DB: ${DB_DATABASE:-test}
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
