@@ -64,7 +64,7 @@ services:
   migration:
     image: backend:latest
     container_name: migration
-    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh", "-t", "30", "127.0.0.1:5432", "--", "npm", "run", "typeorm", "migration:run" ]
+    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh 127.0.0.1:5432 -t 30", "--", "npm", "run", "typeorm", "migration:run" ]
     links:
       - db
     depends_on:
