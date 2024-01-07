@@ -11,7 +11,7 @@ make up
 make down
 ```
 
-## Development Mode (HMR)
+## Localhost Development Mode (HMR)
 
 create .env file in backend directory
 
