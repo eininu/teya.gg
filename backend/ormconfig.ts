@@ -8,13 +8,15 @@ const configs: DataSourceOptions = {
   type: 'postgres',
   host: process.env.DB_HOST || 'db',
   port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USERNAME || 'test',
-  password: process.env.DB_PASSWORD || 'test',
-  database: process.env.POSTGRES_DB || 'test',
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/src/migrations/*{.ts,.js}'],
   synchronize: false,
 };
+
+// console.log(configs);
 
 export default new DataSource(configs);
 

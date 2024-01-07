@@ -56,14 +56,13 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5432"
     networks:
       - teya-dev-network
     hostname: db
 
   migration:
     image: backend:latest
-    container_name: migration
     command: >
       /bin/sh -c "while ! /usr/local/bin/wait-for-it.sh db:5432 -t 30; do
           echo 'Waiting for database availability...';
@@ -76,6 +75,13 @@ services:
       - db
     networks:
       - teya-dev-network
+    environment:
+      - MY_ENVIRONMENT=Development
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USERNAME=${DB_USERNAME:-test}
+      - DB_PASSWORD=${DB_PASSWORD:-test}
+      - DB_DATABASE=${DB_DATABASE:-test}
 
 networks:
   teya-dev-network:
