@@ -20,9 +20,9 @@ services:
       - MY_ENVIRONMENT=Development
       - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-5432}
-      - DB_USERNAME=${DB_USERNAME:-test}
-      - DB_PASSWORD=${DB_PASSWORD:-test}
-      - DB_DATABASE=${DB_DATABASE:-test}
+      - DB_USERNAME=test
+      - DB_PASSWORD=test
+      - DB_DATABASE=test
     depends_on:
       - db
     links:
@@ -50,11 +50,11 @@ services:
     image: postgres:latest
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USERNAME:-test}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-test}
-      POSTGRES_DB: ${DB_DATABASE:-test}
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./data/db_dev:/var/lib/postgresql/data
     ports:
       - "5432"
     networks:
@@ -79,9 +79,9 @@ services:
       - MY_ENVIRONMENT=Development
       - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-5432}
-      - DB_USERNAME=${DB_USERNAME:-test}
-      - DB_PASSWORD=${DB_PASSWORD:-test}
-      - DB_DATABASE=${DB_DATABASE:-test}
+      - DB_USERNAME=test
+      - DB_PASSWORD=test
+      - DB_DATABASE=test
 
 networks:
   teya-dev-network:
