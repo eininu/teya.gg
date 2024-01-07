@@ -16,7 +16,7 @@ const configs: DataSourceOptions = {
   synchronize: false,
 };
 
-// console.log(configs);
+console.log(configs);
 
 export default new DataSource(configs);
 

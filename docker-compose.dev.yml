@@ -56,7 +56,7 @@ services:
     volumes:
       - ./data/db_dev:/var/lib/postgresql/data
     ports:
-      - "5432"
+      - "5432:5432"
     networks:
       - teya-dev-network
     hostname: db

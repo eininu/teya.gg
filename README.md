@@ -13,6 +13,15 @@ make down
 
 ## Development Mode (HMR)
 
+create .env file in backend directory
+
+```
+DB_HOST=localhost
+DB_USERNAME=test
+DB_PASSWORD=test
+DB_DATABASE=test
+```
+
 ```Development
 make db
 make back
