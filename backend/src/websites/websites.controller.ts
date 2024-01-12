@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { WebsitesService } from './websites.service';
 import { Website } from './entities/website.entity';
+import { CreateWebsiteDto } from './websites.dto';
 
 @Controller('websites')
 export class WebsitesController {
@@ -20,12 +21,8 @@ export class WebsitesController {
   }
 
   @Post()
-  async create(@Body('domainName') domainName: string): Promise<{
-    success: boolean;
-    message: string;
-    website?: Website;
-  }> {
-    return await this.websitesService.create(domainName);
+  async create(@Body() createWebsiteDto: CreateWebsiteDto) {
+    return await this.websitesService.create(createWebsiteDto.domainName);
   }
 
   @Delete(':id')
