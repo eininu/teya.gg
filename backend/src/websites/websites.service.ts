@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Website } from './entities/website.entity';
@@ -36,8 +36,16 @@ export class WebsitesService {
     const website = this.websiteRepository.create({
       domainName: punycodeDomainName,
     });
-    await this.websiteRepository.save(website);
-    return { success: true, message: 'Website created successfully.', website };
+    try {
+      await this.websiteRepository.save(website);
+      return {
+        success: true,
+        message: 'Website created successfully.',
+        website,
+      };
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async delete(id: number): Promise<{ deleted: boolean; message: string }> {
@@ -49,7 +57,7 @@ export class WebsitesService {
         message: `Website with id ${id} has been deleted.`,
       };
     } else {
-      return { deleted: false, message: `Website with id ${id} not found.` };
+      throw new NotFoundException(`Website with id ${id} not found.`);
     }
   }
 }
