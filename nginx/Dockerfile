@@ -5,14 +5,6 @@ RUN npm install
 COPY ./frontend/ .
 RUN npm run build
 
-FROM node:latest as pbn-build
-WORKDIR /app
-COPY ./pbn/package*.json ./
-RUN npm install
-COPY ./pbn/ .
-COPY ./backend/public/links.json ./_data/links.json
-RUN npm run build
-
 FROM nginx:alpine
 ENV DOMAIN_NAME=teya.gg
 ARG BASIC_AUTH_PASSWORD
@@ -25,6 +17,5 @@ RUN apk --no-cache add apache2-utils openssl \
 COPY ./nginx/configs /etc/nginx
 
 COPY --from=frontend-build /app/build /usr/share/nginx/html/frontend
-COPY --from=pbn-build /app/dist /usr/share/nginx/html/pbn
 
 CMD ["nginx", "-g", "daemon off;"]

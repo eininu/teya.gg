@@ -13,6 +13,8 @@ services:
       - DB_USERNAME=test
       - DB_PASSWORD=test
       - DB_DATABASE=test
+    ports:
+      - "3000:3000"
     depends_on:
       - db
     links:
@@ -35,6 +37,8 @@ services:
     command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; nginx -g 'daemon off;'"]
     networks:
       - teya-dev-network
+    volumes:
+      - pbn-data:/usr/share/nginx/html/pbn
 
   db:
     image: postgres:latest
@@ -73,7 +77,21 @@ services:
       - DB_PASSWORD=test
       - DB_DATABASE=test
 
+  pbn:
+    build:
+      context: ./pbn
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - teya-dev-network
+    volumes:
+      - pbn-data:/usr/src/app/dist
+
 networks:
   teya-dev-network:
     name: teya-dev-network
     driver: bridge
+    
+volumes:
+  pbn-data:
