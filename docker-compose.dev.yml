@@ -43,6 +43,7 @@ services:
       - backend
     volumes:
       - frontend-build:/usr/share/nginx/html/frontend
+      - pbn-build:/usr/share/nginx/html/pbn
     command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; nginx -g 'daemon off;'"]
     networks:
       - teya-dev-network
@@ -84,6 +85,15 @@ services:
       - DB_PASSWORD=test
       - DB_DATABASE=test
 
+  pbn:
+    build:
+      context: ./pbn
+      dockerfile: Dockerfile
+    volumes:
+      - pbn-build:/app/dist
+    networks:
+      - teya-dev-network
+
 networks:
   teya-dev-network:
     name: teya-dev-network
@@ -91,3 +101,4 @@ networks:
 
 volumes:
   frontend-build:
+  pbn-build:
