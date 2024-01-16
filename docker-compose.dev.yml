@@ -21,6 +21,9 @@ services:
       - db
     networks:
       - teya-dev-network
+    volumes:
+      - ./pbn/content:/usr/src/app/pbn/content
+      - pbn-content:/usr/src/app/pbn/content
 
   nginx:
     image: nginx:1.25.3
@@ -38,7 +41,7 @@ services:
     networks:
       - teya-dev-network
     volumes:
-      - pbn-data:/usr/share/nginx/html/pbn
+      - pbn-build:/usr/share/nginx/html/pbn
 
   db:
     image: postgres:latest
@@ -87,13 +90,17 @@ services:
       - teya-dev-network
     depends_on:
       - backend
+    command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; node server.js"]
     volumes:
-      - pbn-data:/usr/src/app/dist
+      - pbn-content:/usr/src/app/content
+      - pbn-build:/usr/src/app/dist
+
 
 networks:
   teya-dev-network:
     name: teya-dev-network
     driver: bridge
-    
+
 volumes:
-  pbn-data:
+  pbn-build: {}
+  pbn-content: {}
