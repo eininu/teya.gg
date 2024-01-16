@@ -85,6 +85,8 @@ services:
       - "3001:3001"
     networks:
       - teya-dev-network
+    depends_on:
+      - backend
     volumes:
       - pbn-data:/usr/src/app/dist
 
