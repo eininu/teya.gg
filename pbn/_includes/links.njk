@@ -1,0 +1,3 @@
+{% set currentSite = page.url | extractDirName %}{% set siteLinks = links[currentSite] %}<ul>
+    {% for link in siteLinks %}<li><a href="http://{{ link }}">{{ link }}</a></li>{% endfor %}
+</ul>

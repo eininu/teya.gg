@@ -1,0 +1,4 @@
+node_modules
+!content/example1.com
+!content/example2.com
+dist

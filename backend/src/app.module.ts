@@ -7,12 +7,17 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { SchedulerService } from './scheduler/scheduler.service';
 import { DomainBanCheckerModule } from './domain-ban-checker/domain-ban-checker.module';
 import ormconfig from './../ormconfig';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 @Module({
   imports: [
     TypeOrmModule.forRoot({ ...ormconfig.options }),
     WebsitesModule,
     ScheduleModule.forRoot(),
     DomainBanCheckerModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', 'public'),
+    }),
   ],
   controllers: [AppController],
   providers: [AppService, SchedulerService],

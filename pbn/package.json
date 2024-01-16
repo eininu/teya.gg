@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "@11ty/eleventy": "^2.0.1"
+  },
+  "scripts": {
+    "build": "eleventy"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
