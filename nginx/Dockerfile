@@ -10,6 +10,7 @@ WORKDIR /app
 COPY ./pbn/package*.json ./
 RUN npm install
 COPY ./pbn/ .
+COPY ./backend/public/links.json ./_data/links.json
 RUN npm run build
 
 FROM nginx:alpine
