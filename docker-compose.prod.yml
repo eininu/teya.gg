@@ -1,15 +1,6 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - frontend-build:/app/build
-    networks:
-      - teya-prod-network
-
   backend:
     restart: unless-stopped
     build:

@@ -1,13 +1,6 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    networks:
-      - teya-dev-network
-
   backend:
     restart: unless-stopped
     build:
@@ -79,13 +72,6 @@ services:
       - DB_USERNAME=test
       - DB_PASSWORD=test
       - DB_DATABASE=test
-
-  pbn:
-    build:
-      context: ./pbn
-      dockerfile: Dockerfile
-    networks:
-      - teya-dev-network
 
 networks:
   teya-dev-network:
