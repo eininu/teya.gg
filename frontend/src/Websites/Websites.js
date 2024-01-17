@@ -3,6 +3,7 @@ import punycode from "punycode";
 export default function Websites() {
   const [websites, setWebsites] = useState([]);
   const [pbnWebsites, setPbnWebsites] = useState([]);
+  const [pbnWebsiteFile, setPbnWebsiteFile] = useState(null);
   const [newDomainName, setNewDomainName] = useState("");
   const [newPbnWebsite, setNewPbnWebsite] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -63,14 +64,25 @@ export default function Websites() {
 
   const addPbnWebsite = (e) => {
     e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("siteName", newPbnWebsite);
+    if (pbnWebsiteFile) {
+      formData.append("file", pbnWebsiteFile);
+    }
+
+    // for (let [key, value] of formData.entries()) {
+    //   console.log(key, value);
+    // }
+
     fetch("/api/pbn/createSite", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ siteName: newPbnWebsite }),
+      body: formData,
     })
       .then(() => {
         setNewPbnWebsite("");
-        fetchPbnWebsites(); // Reload the list of sites after adding
+        setPbnWebsiteFile(null);
+        fetchPbnWebsites();
       })
       .catch((error) => console.error("Error while adding website:", error));
   };
@@ -196,6 +208,15 @@ export default function Websites() {
           placeholder="Enter your pbn name"
           className="p-2 border border-gray-300 rounded mr-2"
         />
+        <input
+          type="file"
+          onChange={(e) => {
+            setPbnWebsiteFile(e.target.files[0]);
+            // console.log(e.target.files[0]);
+          }}
+          className="p-2 border border-gray-300 rounded mr-2"
+        />
+
         <button
           type="submit"
           className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 import { Cron } from '@nestjs/schedule';
+import * as AdmZip from 'adm-zip';
 
 @Injectable()
 export class PbnService {
@@ -22,12 +23,29 @@ export class PbnService {
     return directories;
   }
 
-  createSite(siteName: string): string {
+  createSite(siteName: string, zipFile?: Express.Multer.File): string {
     const sitePath = path.join(this.contentDir, siteName);
     fs.mkdirSync(sitePath, { recursive: true });
-    fs.writeFileSync(
-      path.join(sitePath, 'index.html'),
-      `<!DOCTYPE html>
+
+    if (zipFile && zipFile.path) {
+      try {
+        const zip = new AdmZip(zipFile.path);
+        zip.extractAllTo(sitePath, true);
+
+        this.logger.log(`Attempting to delete file: ${zipFile.path}`);
+        fs.unlinkSync(zipFile.path);
+      } catch (error) {
+        this.logger.error(`Error processing zip file: ${error}`);
+        // Логирование ошибки, если файл не удаляется
+        if (fs.existsSync(zipFile.path)) {
+          this.logger.error(`Failed to delete file: ${zipFile.path}`);
+        }
+        this.logger.error(`Error processing zip file for site ${siteName}`);
+      }
+    } else {
+      fs.writeFileSync(
+        path.join(sitePath, 'index.html'),
+        `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -39,7 +57,10 @@ export class PbnService {
 {% include "_includes/links.njk" %}
 </body>
 </html>`,
-    );
+      );
+      this.logger.log('No zip file provided, creating default index.html');
+    }
+
     this.logger.log(`Site ${siteName} created successfully`);
     this.triggerPbnBuild().then((res) => this.logger.log(res));
     return `Site ${siteName} created successfully`;
@@ -63,7 +84,6 @@ export class PbnService {
       const response = await axios.get('http://localhost:3001/build');
       return response.data;
     } catch (error) {
-      // Обработка ошибок сети или HTTP-статусных ошибок
       this.logger.log(
         'Error triggering PBN build with localhost, trying to trigger with pbn service host',
       );

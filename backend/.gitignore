@@ -38,3 +38,4 @@ lerna-debug.log*
 /pbn/content
 !/pbn/content/example1.com/
 !/pbn/content/example2.com/
+/pbn/uploads

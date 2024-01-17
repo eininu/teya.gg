@@ -1,5 +1,20 @@
-import { Controller, Post, Body, Get, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Delete,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { PbnService } from './pbn.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { CreatePbnSiteDto } from './dto/create-pbn-site.dto';
 
 @Controller('pbn')
 export class PbnController {
@@ -10,8 +25,23 @@ export class PbnController {
     return this.pbnService.getSites();
   }
   @Post('createSite')
-  createSite(@Body('siteName') siteName: string) {
-    return this.pbnService.createSite(siteName);
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './pbn/uploads',
+        filename: (req, file, callback) => {
+          const ext = path.extname(file.originalname);
+          callback(null, `${file.fieldname}-${Date.now()}${ext}`);
+        },
+      }),
+    }),
+  )
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  createSite(
+    @Body() createPbnSiteDto: CreatePbnSiteDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.pbnService.createSite(createPbnSiteDto.siteName, file);
   }
 
   @Delete('deleteSite/:siteName')
