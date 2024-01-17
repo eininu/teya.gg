@@ -19,7 +19,7 @@ export default function Header() {
             <div className="flex items-center">
               {/* Logo */}
               <a
-                href="#"
+                href="/"
                 className="group inline-flex items-center space-x-2 text-lg font-bold tracking-wide text-gray-900 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300"
               >
                 <svg
