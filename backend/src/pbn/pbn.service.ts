@@ -64,7 +64,7 @@ export class PbnService {
       return response.data;
     } catch (error) {
       // Обработка ошибок сети или HTTP-статусных ошибок
-      console.error(
+      this.logger.log(
         'Error triggering PBN build with localhost, trying to trigger with pbn service host',
       );
       try {
