@@ -89,7 +89,7 @@ export class PbnService {
     return zip.toBuffer();
   }
 
-  uploadBackup(zipFile: Express.Multer.File): string {
+  async uploadBackup(zipFile: Express.Multer.File): Promise<string> {
     const sitePath = path.join(this.contentDir);
     const backupPath = path.join(this.contentDir, '../uploads/backup.zip');
 
@@ -105,9 +105,23 @@ export class PbnService {
       }
     }
 
-    fs.rmSync(sitePath, { recursive: true, force: true });
+    try {
+      const files = await fs.promises.readdir(sitePath);
+      for (const file of files) {
+        const fullPath = path.join(sitePath, file);
+        const stat = await fs.promises.stat(fullPath);
+        if (stat.isDirectory()) {
+          await fs.promises.rm(fullPath, { recursive: true, force: true });
+        } else {
+          await fs.promises.unlink(fullPath);
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error clearing directory: ${error}`);
+      return `Error clearing directory`;
+    }
 
-    fs.mkdirSync(sitePath, { recursive: true });
+    await fs.promises.mkdir(sitePath, { recursive: true });
 
     let restoreBackup = true;
     if (zipFile && zipFile.path) {
@@ -115,12 +129,12 @@ export class PbnService {
         const zip = new AdmZip(zipFile.path);
         zip.extractAllTo(sitePath, true);
         restoreBackup = false;
-
-        this.logger.log(`Attempting to delete file: ${zipFile.path}`);
-        fs.unlinkSync(zipFile.path);
+        await fs.promises.unlink(zipFile.path);
+        this.logger.log(`Backup uploaded successfully`);
       } catch (error) {
         this.logger.error(`Error processing zip file: ${error}`);
         if (fs.existsSync(zipFile.path)) {
+          await fs.promises.unlink(zipFile.path);
           this.logger.error(`Failed to delete file: ${zipFile.path}`);
         }
         this.logger.error(`Error processing zip file for backup`);
@@ -131,7 +145,7 @@ export class PbnService {
 
     if (restoreBackup && fs.existsSync(backupPath)) {
       try {
-        fs.rmSync(sitePath, { recursive: true, force: true });
+        await fs.promises.rm(sitePath, { recursive: true, force: true });
         const zip = new AdmZip(backupPath);
         zip.extractAllTo(sitePath, true);
         this.logger.log(`Restored from backup`);
@@ -141,11 +155,15 @@ export class PbnService {
     }
 
     if (!restoreBackup && fs.existsSync(backupPath)) {
-      fs.unlinkSync(backupPath);
-      this.logger.log(`Backup deleted successfully`);
+      try {
+        await fs.promises.unlink(backupPath);
+        this.logger.log(`Backup deleted successfully`);
+      } catch (error) {
+        this.logger.error(`Error deleting backup: ${error}`);
+      }
     }
 
-    this.triggerPbnBuild().then((res) => this.logger.log(res));
+    await this.triggerPbnBuild();
     return restoreBackup
       ? `Error occurred, restored from backup`
       : `Backup uploaded successfully`;
