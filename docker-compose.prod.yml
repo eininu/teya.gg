@@ -80,7 +80,7 @@ services:
 
   pbn:
     build:
-      context: ./pbn
+      context: websites-builder
       dockerfile: Dockerfile
     ports:
       - "3001:3001"

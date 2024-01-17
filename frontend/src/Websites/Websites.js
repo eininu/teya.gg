@@ -2,18 +2,14 @@ import React, { useEffect, useState } from "react";
 import punycode from "punycode";
 export default function Websites() {
   const [websites, setWebsites] = useState([]);
-  const [pbnWebsites, setPbnWebsites] = useState([]);
-  const [pbnWebsiteFile, setPbnWebsiteFile] = useState(null);
+  const [websiteFile, setWebsiteFile] = useState(null);
   const [backupFile, setBackupFile] = useState(null);
-  const [newDomainName, setNewDomainName] = useState("");
-  const [newPbnWebsite, setNewPbnWebsite] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [pbnIsRebuilding, setPbnIsRebuilding] = useState(false);
+  const [newWebsite, setNewWebsite] = useState("");
+  const [websitesIsRebuilding, setWebsitesIsRebuilding] = useState(false);
   const [loadingBackupToMega, setLoadingBackupToMega] = useState(false);
 
   useEffect(() => {
     fetchWebsites();
-    fetchPbnWebsites();
   }, []);
 
   const fetchWebsites = () => {
@@ -22,85 +18,46 @@ export default function Websites() {
       .then((data) => {
         const convertedData = data.map((website) => ({
           ...website,
-          domainName: punycode.toUnicode(website.domainName),
+          domainName: punycode.toUnicode(website),
         }));
         setWebsites(convertedData);
       })
       .catch((error) => console.error("Error while receiving data:", error));
   };
 
-  const fetchPbnWebsites = () => {
-    fetch("/api/pbn/sites")
-      .then((response) => response.json())
-      .then((data) => {
-        const convertedData = data.map((website) => ({
-          ...website,
-          domainName: punycode.toUnicode(website),
-        }));
-        setPbnWebsites(convertedData);
-      })
-      .catch((error) => console.error("Error while receiving data:", error));
-  };
-
-  const deleteWebsite = (id) => {
-    fetch(`/api/websites/${id}`, { method: "DELETE" })
-      .then(() => {
-        setWebsites(websites.filter((website) => website.id !== id));
-      })
-      .catch((error) => console.error("Error while deleting:", error));
-  };
-
   const addWebsite = (e) => {
-    e.preventDefault();
-    fetch("/api/websites/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domainName: newDomainName }),
-    })
-      .then(() => {
-        setNewDomainName("");
-        fetchWebsites(); // Reload the list of sites after adding
-      })
-      .catch((error) => console.error("Error while adding website:", error));
-  };
-
-  const addPbnWebsite = (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append("siteName", newPbnWebsite);
-    if (pbnWebsiteFile) {
-      formData.append("file", pbnWebsiteFile);
+    formData.append("siteName", newWebsite);
+    if (websiteFile) {
+      formData.append("file", websiteFile);
     }
 
-    // for (let [key, value] of formData.entries()) {
-    //   console.log(key, value);
-    // }
-
-    fetch("/api/pbn/createSite", {
+    fetch("/api/websites/createSite", {
       method: "POST",
       body: formData,
     })
       .then(() => {
-        setNewPbnWebsite("");
-        setPbnWebsiteFile(null);
-        fetchPbnWebsites();
+        setNewWebsite("");
+        setWebsiteFile(null);
+        fetchWebsites();
       })
       .catch((error) => console.error("Error while adding website:", error));
   };
 
-  const deletePbnWebsite = async (domainName) => {
+  const deleteWebsite = async (domainName) => {
     if (window.confirm(`Are you sure you want to delete ${domainName}?`)) {
       try {
-        const response = await fetch(`/api/pbn/deleteSite/${domainName}`, {
+        const response = await fetch(`/api/websites/deleteSite/${domainName}`, {
           method: "DELETE",
         });
 
         if (response.ok) {
-          //setPbnWebsites(prevWebsites => prevWebsites.filter(website => website.domainName !== domainName));
+          //setWebsites(prevWebsites => prevWebsites.filter(website => website.domainName !== domainName));
 
           alert(`Site ${domainName} deleted successfully`);
-          fetchPbnWebsites();
+          fetchWebsites();
         } else {
           alert("Error deleting site");
         }
@@ -111,32 +68,20 @@ export default function Websites() {
     }
   };
 
-  const runCronTask = () => {
-    setIsUpdating(true);
-    fetch("/api/domain-ban-checker/run-cron-task")
-      .then(() => {
-        fetchWebsites(); // Reload the list of sites after adding
-      })
-      .catch((error) => console.error("Error while running cron task:", error))
-      .finally(() => {
-        setIsUpdating(false);
-      });
-  };
-
   const runBpnRebuild = () => {
-    setPbnIsRebuilding(true);
-    fetch("/api/pbn/triggerBuild")
+    setWebsitesIsRebuilding(true);
+    fetch("/api/websites/triggerBuild")
       .catch((error) =>
-        console.error("Error while running pbn rebuild task:", error),
+        console.error("Error while running websites rebuild task:", error),
       )
       .finally(() => {
-        setPbnIsRebuilding(false);
+        setWebsitesIsRebuilding(false);
       });
   };
 
   const downloadBackup = () => {
     const downloadLink = document.createElement("a");
-    downloadLink.href = "/api/pbn/download";
+    downloadLink.href = "/api/websites/download";
     downloadLink.target = "_blank";
     downloadLink.click();
   };
@@ -149,14 +94,14 @@ export default function Websites() {
       formData.append("file", backupFile);
     }
 
-    fetch("/api/pbn/upload", {
+    fetch("/api/websites/upload", {
       method: "POST",
       body: formData,
     })
       .then(() => {
-        setNewPbnWebsite("");
-        setPbnWebsiteFile(null);
-        fetchPbnWebsites();
+        setNewWebsite("");
+        setWebsiteFile(null);
+        fetchWebsites();
       })
       .catch((error) => console.error("Error while adding website:", error));
   };
@@ -164,7 +109,7 @@ export default function Websites() {
   const handleUploadBackup = async () => {
     setLoadingBackupToMega(true);
 
-    fetch("/api/pbn/mega-backup")
+    fetch("/api/websites/mega-backup")
       .catch((error) =>
         console.error("Error while loading mega backup:", error),
       )
@@ -175,54 +120,12 @@ export default function Websites() {
 
   return (
     <div className="p-4">
+      <h2 className={"py-2 font-bold text-2xl"}>Websites</h2>
       {websites.length === 0 && (
         <div className="text-gray-600">No websites found.</div>
       )}
       {websites.length > 0 &&
         websites.map((website) => (
-          <div
-            key={website.id}
-            className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
-          >
-            {website.isDomainRoskomnadzorBanned ? (
-              <s className="text-red-500">{website.domainName}</s>
-            ) : (
-              <span>{website.domainName}</span>
-            )}
-            <button
-              onClick={() => deleteWebsite(website.id)}
-              className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out"
-            >
-              Delete
-            </button>
-          </div>
-        ))}
-      <form onSubmit={addWebsite} className="mt-4 flex items-center">
-        <input
-          type="text"
-          value={newDomainName}
-          onChange={(e) => setNewDomainName(e.target.value)}
-          placeholder="Enter your domain name"
-          className="p-2 border border-gray-300 rounded mr-2"
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
-        >
-          Add
-        </button>
-        <button
-          onClick={runCronTask}
-          type="button"
-          className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out ml-4"
-        >
-          {isUpdating ? "Loading..." : "Run cron task"}
-        </button>
-      </form>
-
-      <h2 className={"mt-10 py-2 font-bold text-2xl"}>Pbn</h2>
-      {pbnWebsites.length > 0 &&
-        pbnWebsites.map((website) => (
           <div
             key={website.domain}
             className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
@@ -233,7 +136,7 @@ export default function Websites() {
               <span>{website.domainName}</span>
             )}
             <button
-              onClick={() => deletePbnWebsite(website.domainName)}
+              onClick={() => deleteWebsite(website.domainName)}
               className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out"
             >
               Delete
@@ -241,18 +144,18 @@ export default function Websites() {
           </div>
         ))}
 
-      <form onSubmit={addPbnWebsite} className="mt-4 flex items-center">
+      <form onSubmit={addWebsite} className="mt-4 flex items-center">
         <input
           type="text"
-          value={newPbnWebsite}
-          onChange={(e) => setNewPbnWebsite(e.target.value)}
-          placeholder="Enter your pbn name"
+          value={newWebsite}
+          onChange={(e) => setNewWebsite(e.target.value)}
+          placeholder="Enter your website domain name"
           className="p-2 border border-gray-300 rounded mr-2"
         />
         <input
           type="file"
           onChange={(e) => {
-            setPbnWebsiteFile(e.target.files[0]);
+            setWebsiteFile(e.target.files[0]);
             // console.log(e.target.files[0]);
           }}
           className="p-2 border border-gray-300 rounded mr-2"
@@ -270,7 +173,7 @@ export default function Websites() {
         type="button"
         className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out mt-4"
       >
-        {pbnIsRebuilding ? "Loading..." : "Run pbn rebuild task"}
+        {websitesIsRebuilding ? "Loading..." : "Run websites rebuild task"}
       </button>
       <button
         onClick={downloadBackup}

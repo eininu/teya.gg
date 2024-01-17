@@ -35,7 +35,7 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # pbn
-/pbn/content
-!/pbn/content/example1.com/
-!/pbn/content/example2.com/
-/pbn/uploads
+/_websites/content
+!/_websites/content/example1.com/
+!/_websites/content/example2.com/
+/_websites/uploads
