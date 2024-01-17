@@ -26,6 +26,7 @@ DB_DATABASE=test
 make db
 make back
 make front
+make pbn
 ```
 
 ### Prod Branch
