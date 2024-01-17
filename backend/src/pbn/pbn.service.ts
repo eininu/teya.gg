@@ -90,83 +90,87 @@ export class PbnService {
   }
 
   async uploadBackup(zipFile: Express.Multer.File): Promise<string> {
-    const sitePath = path.join(this.contentDir);
-    const backupPath = path.join(this.contentDir, '../uploads/backup.zip');
-
-    if (fs.existsSync(sitePath)) {
-      try {
-        const zip = new AdmZip();
-        zip.addLocalFolder(sitePath);
-        zip.writeZip(backupPath);
-        this.logger.log(`Backup created at: ${backupPath}`);
-      } catch (error) {
-        this.logger.error(`Error creating backup: ${error}`);
-        return `Error creating backup`;
-      }
-    }
-
-    try {
-      const files = await fs.promises.readdir(sitePath);
-      for (const file of files) {
-        const fullPath = path.join(sitePath, file);
-        const stat = await fs.promises.stat(fullPath);
-        if (stat.isDirectory()) {
-          await fs.promises.rm(fullPath, { recursive: true, force: true });
-        } else {
-          await fs.promises.unlink(fullPath);
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Error clearing directory: ${error}`);
-      return `Error clearing directory`;
-    }
-
-    await fs.promises.mkdir(sitePath, { recursive: true });
-
-    let restoreBackup = true;
     if (zipFile && zipFile.path) {
-      try {
-        const zip = new AdmZip(zipFile.path);
-        zip.extractAllTo(sitePath, true);
-        restoreBackup = false;
-        await fs.promises.unlink(zipFile.path);
-        this.logger.log(`Backup uploaded successfully`);
-      } catch (error) {
-        this.logger.error(`Error processing zip file: ${error}`);
-        if (fs.existsSync(zipFile.path)) {
-          await fs.promises.unlink(zipFile.path);
-          this.logger.error(`Failed to delete file: ${zipFile.path}`);
+      const sitePath = path.join(this.contentDir);
+      const backupPath = path.join(this.contentDir, '../uploads/backup.zip');
+
+      if (fs.existsSync(sitePath)) {
+        try {
+          const zip = new AdmZip();
+          zip.addLocalFolder(sitePath);
+          zip.writeZip(backupPath);
+          this.logger.log(`Backup created at: ${backupPath}`);
+        } catch (error) {
+          this.logger.error(`Error creating backup: ${error}`);
+          return `Error creating backup`;
         }
-        this.logger.error(`Error processing zip file for backup`);
       }
+
+      try {
+        const files = await fs.promises.readdir(sitePath);
+        for (const file of files) {
+          const fullPath = path.join(sitePath, file);
+          const stat = await fs.promises.stat(fullPath);
+          if (stat.isDirectory()) {
+            await fs.promises.rm(fullPath, { recursive: true, force: true });
+          } else {
+            await fs.promises.unlink(fullPath);
+          }
+        }
+      } catch (error) {
+        this.logger.error(`Error clearing directory: ${error}`);
+        return `Error clearing directory`;
+      }
+
+      await fs.promises.mkdir(sitePath, { recursive: true });
+
+      let restoreBackup = true;
+      if (zipFile && zipFile.path) {
+        try {
+          const zip = new AdmZip(zipFile.path);
+          zip.extractAllTo(sitePath, true);
+          restoreBackup = false;
+          await fs.promises.unlink(zipFile.path);
+          this.logger.log(`Backup uploaded successfully`);
+        } catch (error) {
+          this.logger.error(`Error processing zip file: ${error}`);
+          if (fs.existsSync(zipFile.path)) {
+            await fs.promises.unlink(zipFile.path);
+            this.logger.error(`Failed to delete file: ${zipFile.path}`);
+          }
+          this.logger.error(`Error processing zip file for backup`);
+        }
+      } else {
+        this.logger.log('No zip file provided');
+      }
+
+      if (restoreBackup && fs.existsSync(backupPath)) {
+        try {
+          await fs.promises.rm(sitePath, { recursive: true, force: true });
+          const zip = new AdmZip(backupPath);
+          zip.extractAllTo(sitePath, true);
+          this.logger.log(`Restored from backup`);
+        } catch (error) {
+          this.logger.error(`Error restoring from backup: ${error}`);
+        }
+      }
+
+      if (!restoreBackup && fs.existsSync(backupPath)) {
+        try {
+          await fs.promises.unlink(backupPath);
+          this.logger.log(`Backup deleted successfully`);
+        } catch (error) {
+          this.logger.error(`Error deleting backup: ${error}`);
+        }
+      }
+
+      await this.triggerPbnBuild();
+      return restoreBackup
+        ? `Error occurred, restored from backup`
+        : `Backup uploaded successfully`;
     } else {
-      this.logger.log('No zip file provided');
+      return `No zip file provided`;
     }
-
-    if (restoreBackup && fs.existsSync(backupPath)) {
-      try {
-        await fs.promises.rm(sitePath, { recursive: true, force: true });
-        const zip = new AdmZip(backupPath);
-        zip.extractAllTo(sitePath, true);
-        this.logger.log(`Restored from backup`);
-      } catch (error) {
-        this.logger.error(`Error restoring from backup: ${error}`);
-      }
-    }
-
-    if (!restoreBackup && fs.existsSync(backupPath)) {
-      try {
-        await fs.promises.unlink(backupPath);
-        this.logger.log(`Backup deleted successfully`);
-      } catch (error) {
-        this.logger.error(`Error deleting backup: ${error}`);
-      }
-    }
-
-    await this.triggerPbnBuild();
-    return restoreBackup
-      ? `Error occurred, restored from backup`
-      : `Backup uploaded successfully`;
   }
 
   async triggerPbnBuild(): Promise<any> {
