@@ -79,6 +79,18 @@ export class PbnService {
     }
   }
 
+  // export pbn websites as zip archive
+  createArchive(): Buffer {
+    const contentDir = path.join(this.contentDir, 'content');
+    const zip = new AdmZip();
+
+    // Добавление содержимого директории в архив
+    zip.addLocalFolder(contentDir);
+
+    // Возвращаем буфер zip-архива
+    return zip.toBuffer();
+  }
+
   async triggerPbnBuild(): Promise<any> {
     try {
       const response = await axios.get('http://localhost:3001/build');

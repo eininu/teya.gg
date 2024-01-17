@@ -4,6 +4,7 @@ export default function Websites() {
   const [websites, setWebsites] = useState([]);
   const [pbnWebsites, setPbnWebsites] = useState([]);
   const [pbnWebsiteFile, setPbnWebsiteFile] = useState(null);
+  const [backupFile, setBackupFile] = useState(null);
   const [newDomainName, setNewDomainName] = useState("");
   const [newPbnWebsite, setNewPbnWebsite] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -132,6 +133,45 @@ export default function Websites() {
       });
   };
 
+  const downloadBackup = () => {
+    const downloadLink = document.createElement("a");
+    downloadLink.href = "/api/pbn/download";
+    downloadLink.target = "_blank";
+    downloadLink.click();
+  };
+
+  const uploadBackup = (e) => {
+    e.preventDefault();
+
+    if (!backupFile) {
+      console.error("No backup file selected");
+      return;
+    }
+
+    // Создаем объект FormData и добавляем файл с именем "file"
+    const formData = new FormData();
+    formData.append("file", backupFile); // Изменили имя файла на "file"
+
+    // Отправляем POST-запрос на сервер с помощью Fetch API
+    fetch("/api/pbn/upload", {
+      method: "POST",
+      body: formData, // Передаем объект FormData с файлом
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Backup uploaded successfully");
+          // Добавьте обновление состояния или другие действия по завершении загрузки
+        } else {
+          console.error("Failed to upload backup");
+          // Обработайте ошибку при загрузке бекапа
+        }
+      })
+      .catch((error) => {
+        console.error("Error while uploading backup:", error);
+        // Обработайте ошибку при загрузке бекапа
+      });
+  };
+
   return (
     <div className="p-4">
       {websites.length === 0 && (
@@ -223,12 +263,39 @@ export default function Websites() {
         >
           Add
         </button>
+      </form>
+      <button
+        onClick={runBpnRebuild}
+        type="button"
+        className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out mt-4"
+      >
+        {pbnIsRebuilding ? "Loading..." : "Run pbn rebuild task"}
+      </button>
+      <button
+        onClick={downloadBackup}
+        type="button"
+        className="ml-5 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
+      >
+        Download Backup
+      </button>
+
+      <form
+        onSubmit={uploadBackup}
+        encType="multipart/form-data"
+        className="mt-4"
+      >
+        <input
+          type="file"
+          name="backupFile"
+          accept=".zip"
+          onChange={(e) => setBackupFile(e.target.files[0])}
+          className="p-2 border border-gray-300 rounded"
+        />
         <button
-          onClick={runBpnRebuild}
-          type="button"
-          className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out ml-4"
+          type="submit"
+          className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out ml-2"
         >
-          {pbnIsRebuilding ? "Loading..." : "Run pbn rebuild task"}
+          Upload Backup
         </button>
       </form>
     </div>

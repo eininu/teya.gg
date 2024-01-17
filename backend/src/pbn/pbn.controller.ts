@@ -9,12 +9,16 @@ import {
   UploadedFile,
   UsePipes,
   ValidationPipe,
+  Res,
+  StreamableFile,
+  Header,
 } from '@nestjs/common';
 import { PbnService } from './pbn.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { CreatePbnSiteDto } from './dto/create-pbn-site.dto';
+import { Readable } from 'stream';
 
 @Controller('pbn')
 export class PbnController {
@@ -52,5 +56,14 @@ export class PbnController {
   @Get('triggerBuild')
   async triggerBuild() {
     return await this.pbnService.triggerPbnBuild();
+  }
+
+  // export pbn websites as zip file
+  @Get('download')
+  @Header('Content-Disposition', 'attachment; filename="content.zip"')
+  downloadContent(): StreamableFile {
+    const zipBuffer = this.pbnService.createArchive();
+    const stream = Readable.from(zipBuffer);
+    return new StreamableFile(stream);
   }
 }
