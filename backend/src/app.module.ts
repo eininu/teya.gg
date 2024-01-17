@@ -10,6 +10,7 @@ import ormconfig from './../ormconfig';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PbnLinksModule } from './pbn-links/pbn-links.module';
+import { PbnModule } from './pbn/pbn.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({ ...ormconfig.options }),
@@ -20,6 +21,7 @@ import { PbnLinksModule } from './pbn-links/pbn-links.module';
       rootPath: join(__dirname, '..', '..', 'public'),
     }),
     PbnLinksModule,
+    PbnModule,
   ],
   controllers: [AppController],
   providers: [AppService, SchedulerService],

@@ -18,7 +18,7 @@ else
 $(error Unkonwn branch: $(BRANCH))
 endif
 
-.PHONY: front back
+.PHONY: front back db pbn
 
 front:
 	cd frontend && set PORT=80 && npm run start
@@ -28,6 +28,9 @@ back:
 
 db:
 	docker-compose -p teya_dev -f docker-compose.dev.yml up --build db
+
+pbn:
+	cd pbn && node server.js
 
 # migrations
 #migration-new:
