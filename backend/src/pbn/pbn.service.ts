@@ -239,8 +239,10 @@ export class PbnService {
         }
       }
 
-      const file = await storage.upload(backupName + '.zip', backupPath)
-        .complete;
+      const file = await storage.upload(
+        backupName + '.zip',
+        this.createArchive(),
+      ).complete;
 
       fs.unlinkSync(backupPath);
 
