@@ -16,7 +16,7 @@ services:
       - MEGA_NZ_LOGIN=${MEGA_NZ_LOGIN}
       - MEGA_NZ_PASSWORD=${MEGA_NZ_PASSWORD}
     ports:
-      - "3000"
+      - "3000:3000"
     depends_on:
       - db
     links:
@@ -55,7 +55,7 @@ services:
     volumes:
       - ./data/db_dev:/var/lib/postgresql/data
     ports:
-      - "5432"
+      - "5432:5432"
     networks:
       - teya-dev-network
     hostname: db
@@ -87,7 +87,7 @@ services:
       context: ./pbn
       dockerfile: Dockerfile
     ports:
-      - "3001"
+      - "3001:3001"
     networks:
       - teya-dev-network
     depends_on:
