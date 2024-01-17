@@ -7,7 +7,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      - MY_ENVIRONMENT=Development
+      - MY_ENVIRONMENT=Production
       - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-5432}
       - DB_USERNAME=${DB_USERNAME:-prod}
