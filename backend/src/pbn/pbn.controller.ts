@@ -86,4 +86,9 @@ export class PbnController {
   ) {
     return this.pbnService.uploadBackup(file);
   }
+
+  @Get('mega-backup')
+  uploadBackupToMega() {
+    return this.pbnService.uploadBackupToMega();
+  }
 }

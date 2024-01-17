@@ -9,6 +9,7 @@ export default function Websites() {
   const [newPbnWebsite, setNewPbnWebsite] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [pbnIsRebuilding, setPbnIsRebuilding] = useState(false);
+  const [loadingBackupToMega, setLoadingBackupToMega] = useState(false);
 
   useEffect(() => {
     fetchWebsites();
@@ -160,6 +161,18 @@ export default function Websites() {
       .catch((error) => console.error("Error while adding website:", error));
   };
 
+  const handleUploadBackup = async () => {
+    setLoadingBackupToMega(true);
+
+    fetch("/api/pbn/mega-backup")
+      .catch((error) =>
+        console.error("Error while loading mega backup:", error),
+      )
+      .finally(() => {
+        setLoadingBackupToMega(false);
+      });
+  };
+
   return (
     <div className="p-4">
       {websites.length === 0 && (
@@ -265,6 +278,19 @@ export default function Websites() {
         className="ml-5 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
       >
         Download Backup
+      </button>
+
+      <button
+        type="button"
+        onClick={handleUploadBackup}
+        className={`ml-5 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700 transition duration-300 ease-in-out ${
+          loadingBackupToMega ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        disabled={loadingBackupToMega}
+      >
+        {loadingBackupToMega
+          ? "Uploading backup to Mega..."
+          : "Upload Backup to Mega"}
       </button>
 
       <form

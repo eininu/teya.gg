@@ -2,8 +2,9 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import * as AdmZip from 'adm-zip';
+import * as mega from 'megajs';
 
 @Injectable()
 export class PbnService {
@@ -11,8 +12,13 @@ export class PbnService {
   private logger = new Logger('PbnService');
 
   @Cron('0 */15 * * * *')
-  async handleCron() {
+  async pbnBuild() {
     await this.triggerPbnBuild().then((res) => this.logger.log(res));
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async megaBackup() {
+    await this.uploadBackupToMega().then((res) => this.logger.log(res));
   }
 
   getSites(): string[] {
@@ -189,6 +195,60 @@ export class PbnService {
       }
 
       // throw new Error('Error triggering PBN build');
+    }
+  }
+
+  async uploadBackupToMega() {
+    const login = process.env.MEGA_NZ_LOGIN;
+    const password = process.env.MEGA_NZ_PASSWORD;
+
+    if (!login || !password) {
+      this.logger.error('MEGA credentials are missing');
+      return;
+    }
+
+    const currentDate = new Date();
+    const backupName = `[${
+      process.env.MY_ENVIRONMENT
+    }] backup-${currentDate.getFullYear()}-${
+      currentDate.getMonth() + 1
+    }-${currentDate.getDate()}-${currentDate.getHours()}${currentDate.getMinutes()}`;
+
+    try {
+      const { Storage } = { ...mega };
+
+      const storage = new Storage({ email: login, password: password });
+
+      await storage.ready;
+
+      const sitePath = path.join(this.contentDir);
+      const backupPath = path.join(
+        this.contentDir,
+        '../uploads/mega-backup.zip',
+      );
+      //
+      if (fs.existsSync(sitePath)) {
+        try {
+          const zip = new AdmZip();
+          zip.addLocalFolder(sitePath);
+          zip.writeZip(backupPath);
+          this.logger.log(`Backup created at: ${backupPath}`);
+        } catch (error) {
+          this.logger.error(`Error creating backup: ${error}`);
+          return `Error creating backup`;
+        }
+      }
+
+      const file = await storage.upload(backupName + '.zip', backupPath)
+        .complete;
+
+      fs.unlinkSync(backupPath);
+
+      this.logger.log('Backup uploaded successfully to MEGA');
+      return 'Backup uploaded successfully to MEGA';
+    } catch (error) {
+      this.logger.error(`Error uploading backup to MEGA: ${error}`);
+      return `Error uploading backup to MEGA`;
     }
   }
 }
