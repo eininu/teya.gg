@@ -24,7 +24,7 @@ front:
 	cd frontend && set PORT=80 && npm run start
 
 back:
-	cd backend && nest start --watch
+	cd backend && npm run start:dev
 
 db:
 	docker-compose -p teya_dev -f docker-compose.dev.yml up --build db
