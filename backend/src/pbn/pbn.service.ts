@@ -81,7 +81,7 @@ export class PbnService {
 
   // export pbn websites as zip archive
   createArchive(): Buffer {
-    const contentDir = path.join(this.contentDir, 'content');
+    const contentDir = path.join(this.contentDir);
     const zip = new AdmZip();
 
     zip.addLocalFolder(contentDir);
