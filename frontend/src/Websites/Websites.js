@@ -143,33 +143,7 @@ export default function Websites() {
   const uploadBackup = (e) => {
     e.preventDefault();
 
-    if (!backupFile) {
-      console.error("No backup file selected");
-      return;
-    }
-
-    // Создаем объект FormData и добавляем файл с именем "file"
-    const formData = new FormData();
-    formData.append("file", backupFile); // Изменили имя файла на "file"
-
-    // Отправляем POST-запрос на сервер с помощью Fetch API
-    fetch("/api/pbn/upload", {
-      method: "POST",
-      body: formData, // Передаем объект FormData с файлом
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log("Backup uploaded successfully");
-          // Добавьте обновление состояния или другие действия по завершении загрузки
-        } else {
-          console.error("Failed to upload backup");
-          // Обработайте ошибку при загрузке бекапа
-        }
-      })
-      .catch((error) => {
-        console.error("Error while uploading backup:", error);
-        // Обработайте ошибку при загрузке бекапа
-      });
+    console.log("backup upload function");
   };
 
   return (
