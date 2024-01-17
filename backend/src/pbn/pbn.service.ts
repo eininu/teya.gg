@@ -84,11 +84,71 @@ export class PbnService {
     const contentDir = path.join(this.contentDir, 'content');
     const zip = new AdmZip();
 
-    // Добавление содержимого директории в архив
     zip.addLocalFolder(contentDir);
 
-    // Возвращаем буфер zip-архива
     return zip.toBuffer();
+  }
+
+  uploadBackup(zipFile: Express.Multer.File): string {
+    const sitePath = path.join(this.contentDir);
+    const backupPath = path.join(this.contentDir, '../uploads/backup.zip');
+
+    if (fs.existsSync(sitePath)) {
+      try {
+        const zip = new AdmZip();
+        zip.addLocalFolder(sitePath);
+        zip.writeZip(backupPath);
+        this.logger.log(`Backup created at: ${backupPath}`);
+      } catch (error) {
+        this.logger.error(`Error creating backup: ${error}`);
+        return `Error creating backup`;
+      }
+    }
+
+    fs.rmSync(sitePath, { recursive: true, force: true });
+
+    fs.mkdirSync(sitePath, { recursive: true });
+
+    let restoreBackup = true;
+    if (zipFile && zipFile.path) {
+      try {
+        const zip = new AdmZip(zipFile.path);
+        zip.extractAllTo(sitePath, true);
+        restoreBackup = false;
+
+        this.logger.log(`Attempting to delete file: ${zipFile.path}`);
+        fs.unlinkSync(zipFile.path);
+      } catch (error) {
+        this.logger.error(`Error processing zip file: ${error}`);
+        if (fs.existsSync(zipFile.path)) {
+          this.logger.error(`Failed to delete file: ${zipFile.path}`);
+        }
+        this.logger.error(`Error processing zip file for backup`);
+      }
+    } else {
+      this.logger.log('No zip file provided');
+    }
+
+    if (restoreBackup && fs.existsSync(backupPath)) {
+      try {
+        fs.rmSync(sitePath, { recursive: true, force: true });
+        const zip = new AdmZip(backupPath);
+        zip.extractAllTo(sitePath, true);
+        this.logger.log(`Restored from backup`);
+      } catch (error) {
+        this.logger.error(`Error restoring from backup: ${error}`);
+      }
+    }
+
+    if (!restoreBackup && fs.existsSync(backupPath)) {
+      fs.unlinkSync(backupPath);
+      this.logger.log(`Backup deleted successfully`);
+    }
+
+    this.triggerPbnBuild().then((res) => this.logger.log(res));
+    return restoreBackup
+      ? `Error occurred, restored from backup`
+      : `Backup uploaded successfully`;
   }
 
   async triggerPbnBuild(): Promise<any> {

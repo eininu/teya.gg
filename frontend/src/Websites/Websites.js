@@ -143,7 +143,21 @@ export default function Websites() {
   const uploadBackup = (e) => {
     e.preventDefault();
 
-    console.log("backup upload function");
+    const formData = new FormData();
+    if (backupFile) {
+      formData.append("file", backupFile);
+    }
+
+    fetch("/api/pbn/upload", {
+      method: "POST",
+      body: formData,
+    })
+      .then(() => {
+        setNewPbnWebsite("");
+        setPbnWebsiteFile(null);
+        fetchPbnWebsites();
+      })
+      .catch((error) => console.error("Error while adding website:", error));
   };
 
   return (

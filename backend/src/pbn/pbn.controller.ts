@@ -66,4 +66,24 @@ export class PbnController {
     const stream = Readable.from(zipBuffer);
     return new StreamableFile(stream);
   }
+
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './pbn/uploads',
+        filename: (req, file, callback) => {
+          const ext = path.extname(file.originalname);
+          callback(null, `${file.fieldname}-${Date.now()}${ext}`);
+        },
+      }),
+    }),
+  )
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  upload(
+    // @Body('file') file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.pbnService.uploadBackup(file);
+  }
 }
