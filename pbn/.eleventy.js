@@ -1,9 +1,16 @@
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs-extra");
 
 const dataDir = path.resolve(__dirname, "_data");
+const outputDir = path.resolve(__dirname, "dist");
 
 module.exports = function (eleventyConfig) {
+  function cleanOutputDir() {
+    fs.emptyDirSync(outputDir);
+  }
+
+  cleanOutputDir();
+
   // read global _data objects as json (possums.[json/js] --> {{ possums }})
   fs.readdirSync(dataDir).forEach((file) => {
     let fileExt = path.extname(file);
