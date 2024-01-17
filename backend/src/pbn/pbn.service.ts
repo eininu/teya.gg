@@ -184,14 +184,15 @@ export class PbnService {
       const response = await axios.get('http://localhost:3001/build');
       return response.data;
     } catch (error) {
-      this.logger.log(
+      this.logger.error(
         'Error triggering PBN build with localhost, trying to trigger with pbn service host',
       );
       try {
         const response = await axios.get('http://pbn:3001/build');
         return response.data;
       } catch (error) {
-        return { message: 'Error triggering PBN build' };
+        this.logger.error('Error triggering PBN build');
+        // return { message: 'Error triggering PBN build' };
       }
 
       // throw new Error('Error triggering PBN build');
@@ -203,7 +204,7 @@ export class PbnService {
     const password = process.env.MEGA_NZ_PASSWORD;
 
     if (!login || !password) {
-      this.logger.error('MEGA credentials are missing');
+      this.logger.warn('MEGA credentials are missing');
       return;
     }
 
