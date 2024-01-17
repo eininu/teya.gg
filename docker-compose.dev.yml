@@ -87,7 +87,7 @@ services:
       context: ./pbn
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "3001"
     networks:
       - teya-dev-network
     depends_on:
