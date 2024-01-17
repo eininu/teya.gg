@@ -13,18 +13,23 @@ services:
       - DB_USERNAME=${DB_USERNAME:-prod}
       - DB_PASSWORD=${DB_PASSWORD:-prod}
       - DB_DATABASE=${DB_DATABASE:-prod}
+    ports:
+      - "3000:3000"
     depends_on:
       - db
     links:
       - db
     networks:
       - teya-prod-network
+    volumes:
+      - ./pbn/content:/usr/src/app/pbn/content
+      - pbn-content:/usr/src/app/pbn/content
 
   nginx:
     image: nginx:1.25.3
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: nginx/Dockerfile
       args:
         BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD:-123}
     ports:
@@ -32,11 +37,11 @@ services:
       - "443:443"
     depends_on:
       - backend
-    volumes:
-      - frontend-build:/usr/share/nginx/html/frontend
     command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; nginx -g 'daemon off;'"]
     networks:
       - teya-prod-network
+    volumes:
+      - pbn-build:/usr/share/nginx/html/pbn
 
   db:
     image: postgres:latest
@@ -48,7 +53,7 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
-      - "5432"
+      - "5432:5432"
     networks:
       - teya-prod-network
     hostname: db
@@ -75,10 +80,26 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-prod}
       - DB_DATABASE=${DB_DATABASE:-prod}
 
+  pbn:
+    build:
+      context: ./pbn
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - teya-prod-network
+    depends_on:
+      - backend
+    command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; node server.js"]
+    volumes:
+      - pbn-content:/usr/src/app/content
+      - pbn-build:/usr/src/app/dist
+
 networks:
   teya-prod-network:
     name: teya-prod-network
     driver: bridge
 
 volumes:
-  frontend-build:
+  pbn-build: {}
+  pbn-content: {}

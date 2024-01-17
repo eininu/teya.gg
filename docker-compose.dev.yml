@@ -14,7 +14,7 @@ services:
       - DB_PASSWORD=test
       - DB_DATABASE=test
     ports:
-      - "3000:3000"
+      - "3000"
     depends_on:
       - db
     links:
@@ -53,7 +53,7 @@ services:
     volumes:
       - ./data/db_dev:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5432"
     networks:
       - teya-dev-network
     hostname: db
@@ -85,7 +85,7 @@ services:
       context: ./pbn
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "3001"
     networks:
       - teya-dev-network
     depends_on:
