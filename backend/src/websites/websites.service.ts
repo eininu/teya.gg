@@ -25,6 +25,7 @@ export class WebsitesService {
     process.env.MY_ENVIRONMENT === 'Development'
       ? 'http://websites-builder:3001'
       : 'http://localhost:3001';
+  private isSynchronizing = false;
 
   @Cron('0 */15 * * * *')
   async websitesBuild() {
@@ -346,22 +347,33 @@ export class WebsitesService {
   }
 
   async synchronizeDatabaseWithFileSystem() {
-    const files = fs.readdirSync(this.contentDir);
-    const websites = await this.websiteRepository.find();
+    if (this.isSynchronizing) {
+      return;
+    }
 
-    // Delete records from DB, which are not present in the file system
+    this.isSynchronizing = true;
+
+    const files = fs.readdirSync(this.contentDir);
+
+    // Delete records from the database that are not present in the file system
+    let websites = await this.websiteRepository.find();
+
     for (const website of websites) {
       if (!files.includes(website.domainName)) {
         await this.websiteRepository.remove(website);
       }
     }
 
-    // Add records to DB, which are present in the file system, but not in the DB
+    // Update the list of websites after deletion from the database
+    websites = await this.websiteRepository.find();
+
+    // Add records to the database for files that are present in the file system but not in the database
     for (const file of files) {
       if (!websites.some((website) => website.domainName === file)) {
-        const newWebsite = this.websiteRepository.create({ domainName: file });
-        await this.websiteRepository.save(newWebsite);
+        await this.createSite(file, null, false);
       }
     }
+
+    this.isSynchronizing = false;
   }
 }
