@@ -7,7 +7,7 @@ import * as AdmZip from 'adm-zip';
 import * as mega from 'megajs';
 import * as punycode from 'punycode';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Website } from '../_websites/entities/website.entity';
+import { Website } from './entities/website.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -35,10 +35,9 @@ export class WebsitesService {
     await this.synchronizeDatabaseWithFileSystem();
   }
 
-  async getSites(): Promise<string[]> {
+  async getSites(): Promise<Website[]> {
     await this.synchronizeDatabaseWithFileSystem();
-    const websites = await this.websiteRepository.find();
-    return websites.map((website) => website.domainName);
+    return await this.websiteRepository.find();
   }
 
   async createSite(

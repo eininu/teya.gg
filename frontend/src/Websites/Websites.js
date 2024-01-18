@@ -7,22 +7,29 @@ export default function Websites() {
   const [newWebsite, setNewWebsite] = useState("");
   const [websitesIsRebuilding, setWebsitesIsRebuilding] = useState(false);
   const [loadingBackupToMega, setLoadingBackupToMega] = useState(false);
+  const [isBannedDomainsChecking, setIsBannedDomainsChecking] = useState(false);
+  const [loadingWebsites, setLoadingWebsites] = useState(false);
 
   useEffect(() => {
     fetchWebsites();
   }, []);
 
   const fetchWebsites = () => {
+    setLoadingWebsites(true);
     fetch("/api/websites")
       .then((response) => response.json())
       .then((data) => {
         const convertedData = data.map((website) => ({
           ...website,
-          domainName: punycode.toUnicode(website),
+          domainName: punycode.toUnicode(website.domainName),
         }));
+        setLoadingWebsites(false);
         setWebsites(convertedData);
       })
-      .catch((error) => console.error("Error while receiving data:", error));
+      .catch((error) => {
+        console.error("Error while receiving data:", error);
+        setLoadingWebsites(false);
+      });
   };
 
   const addWebsite = (e) => {
@@ -118,11 +125,26 @@ export default function Websites() {
       });
   };
 
+  const startCheckingDomainBans = () => {
+    setIsBannedDomainsChecking(true);
+    fetch("/api/domain-ban-checker/start-checking")
+      .then(() => {
+        fetchWebsites(); // Reload the list of sites after adding
+      })
+      .catch((error) => console.error("Error while running cron task:", error))
+      .finally(() => {
+        setIsBannedDomainsChecking(false);
+      });
+  };
+
   return (
     <div className="p-4">
       <h2 className={"py-2 font-bold text-2xl"}>Websites</h2>
-      {websites.length === 0 && (
+      {websites.length === 0 && !loadingWebsites && (
         <div className="text-gray-600">No websites found.</div>
+      )}
+      {websites.length === 0 && loadingWebsites && (
+        <div className="text-gray-600 animate-bounce">Loading websites...</div>
       )}
       {websites.length > 0 &&
         websites.map((website) => (
@@ -166,6 +188,13 @@ export default function Websites() {
           className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
         >
           Add
+        </button>
+        <button
+          onClick={startCheckingDomainBans}
+          type="button"
+          className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out ml-4"
+        >
+          {isBannedDomainsChecking ? "Loading..." : "Check domain bans task"}
         </button>
       </form>
       <button
