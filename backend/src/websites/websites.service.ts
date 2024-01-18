@@ -1,26 +1,3 @@
-// TODO: remove mega-backup.zip if process broken
-
-// TODO: rename mega-backup with timestamp
-
-// TODO: fix mega backup for big files (currently broken)
-
-// [Nest] 1  - 01/18/2024, 3:45:02 PM     LOG [WebsitesService] Backup created at: _websites/uploads/mega-backup.zip
-// node:internal/streams/readable:611
-// throw new ERR_OUT_OF_RANGE('size', '<= 1GiB', n);
-// ^
-//
-// RangeError [ERR_OUT_OF_RANGE]: The value of "size" is out of range. It must be <= 1GiB. Received 1382531232
-// at computeNewHighWaterMark (node:internal/streams/readable:611:11)
-// at Readable.read (node:internal/streams/readable:659:27)
-// at shift (/usr/src/app/node_modules/stream-shift/index.js:6:94)
-// at Duplexify._forward (/usr/src/app/node_modules/duplexify/index.js:170:35)
-// at Transform.onreadable (/usr/src/app/node_modules/duplexify/index.js:136:10)
-// at Transform.emit (node:events:519:28)
-// at emitReadable_ (node:internal/streams/readable:832:12)
-// at process.processTicksAndRejections (node:internal/process/task_queues:81:21) {
-//   code: 'ERR_OUT_OF_RANGE'
-// }
-
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -315,6 +292,7 @@ export class WebsitesService {
   }
 
   async uploadBackupToMega() {
+    const initTime = Date.now();
     const login = process.env.MEGA_NZ_LOGIN;
     const password = process.env.MEGA_NZ_PASSWORD;
 
@@ -329,44 +307,43 @@ export class WebsitesService {
     }] backup-${currentDate.getFullYear()}-${
       currentDate.getMonth() + 1
     }-${currentDate.getDate()}-${currentDate.getHours()}${currentDate.getMinutes()}`;
+    const { Storage } = { ...mega };
+    const storage = new Storage({ email: login, password: password });
+
+    await storage.ready;
+
+    const sitePath = path.join(this.contentDir);
+    const backupPath = path.join(
+      this.contentDir,
+      `../uploads/mega-backup+${initTime}.zip`,
+    );
 
     try {
-      const { Storage } = { ...mega };
-
-      const storage = new Storage({ email: login, password: password });
-
-      await storage.ready;
-
-      const sitePath = path.join(this.contentDir);
-      const backupPath = path.join(
-        this.contentDir,
-        '../uploads/mega-backup.zip',
-      );
-      //
       if (fs.existsSync(sitePath)) {
-        try {
-          const zip = new AdmZip();
-          zip.addLocalFolder(sitePath);
-          zip.writeZip(backupPath);
-          this.logger.log(`Backup created at: ${backupPath}`);
-        } catch (error) {
-          this.logger.error(`Error creating backup: ${error}`);
-          return `Error creating backup`;
-        }
+        const zip = new AdmZip();
+        zip.addLocalFolder(sitePath);
+        zip.writeZip(backupPath);
+        this.logger.log(`Backup created at: ${backupPath}, going to upload`);
+      } else {
+        throw new Error('Site path does not exist');
       }
 
-      const file = await storage.upload(
-        backupName + '.zip',
-        this.createArchive(),
-      ).complete;
+      const fileStream = fs.createReadStream(backupPath);
+      const uploadStream = storage.upload({
+        name: backupName + '.zip',
+        size: fs.statSync(backupPath).size,
+      });
 
-      fs.unlinkSync(backupPath);
-
+      fileStream.pipe(uploadStream);
+      const file = await uploadStream.complete;
       this.logger.log('Backup uploaded successfully to MEGA');
       return 'Backup uploaded successfully to MEGA';
     } catch (error) {
-      this.logger.error(`Error uploading backup to MEGA: ${error}`);
-      return `Error uploading backup to MEGA`;
+      this.logger.error(`Error in backup process: ${error}`);
+    } finally {
+      if (fs.existsSync(backupPath)) {
+        fs.unlinkSync(backupPath);
+      }
     }
   }
 
