@@ -54,8 +54,8 @@ export class WebsitesService {
     siteName: string,
     zipFile?: Express.Multer.File,
   ): Promise<string> {
-    const sitePath = path.join(this.contentDir, siteName);
     const punycodeDomainName = punycode.toASCII(siteName);
+    const sitePath = path.join(this.contentDir, punycodeDomainName);
 
     const existingWebsite = await this.websiteRepository.findOne({
       where: { domainName: punycodeDomainName },
@@ -96,10 +96,10 @@ export class WebsitesService {
       });
       await this.websiteRepository.save(website);
 
-      this.logger.log(`Site ${siteName} created successfully`);
+      this.logger.log(`Site ${punycodeDomainName} created successfully`);
       await this.synchronizeDatabaseWithFileSystem();
       await this.triggerWebsitesBuild();
-      return `Site ${siteName} created successfully`;
+      return `Site ${punycodeDomainName} created successfully`;
     } catch (error) {
       this.logger.error(`Error creating site: ${error}`);
       if (fs.existsSync(sitePath)) {
@@ -109,37 +109,36 @@ export class WebsitesService {
     }
   }
 
-  async deleteSite(siteName: string): Promise<string> {
-    const sitePath = path.join(this.contentDir, siteName);
-    const punycodeDomainName = punycode.toASCII(siteName);
-
+  async deleteSite(siteId: number): Promise<string> {
     const existingWebsite = await this.websiteRepository.findOne({
-      where: { domainName: punycodeDomainName },
+      where: { id: siteId },
     });
 
     if (!existingWebsite) {
       throw new NotFoundException(
-        `Site ${siteName} does not exist in the database`,
+        `Site with ID ${siteId} does not exist in the database`,
       );
     }
 
+    const sitePath = path.join(this.contentDir, existingWebsite.domainName);
+
     if (!fs.existsSync(sitePath)) {
       throw new NotFoundException(
-        `Site ${siteName} does not exist in the file system`,
+        `Site ${existingWebsite.domainName} does not exist in the file system`,
       );
     }
 
     try {
-      // Delete site from file system
       fs.rmdirSync(sitePath, { recursive: true });
 
-      // Delete site from database
       await this.websiteRepository.remove(existingWebsite);
 
-      this.logger.log(`Site ${siteName} deleted successfully`);
+      this.logger.log(
+        `Site ${existingWebsite.domainName} deleted successfully`,
+      );
       await this.synchronizeDatabaseWithFileSystem();
       await this.triggerWebsitesBuild();
-      return `Site ${siteName} deleted successfully`;
+      return `Site ${existingWebsite.domainName} deleted successfully`;
     } catch (error) {
       this.logger.error(`Error deleting site: ${error}`);
       throw error;

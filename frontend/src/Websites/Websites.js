@@ -53,16 +53,14 @@ export default function Websites() {
       .catch((error) => console.error("Error while adding website:", error));
   };
 
-  const deleteWebsite = async (domainName) => {
+  const deleteWebsite = async (id, domainName) => {
     if (window.confirm(`Are you sure you want to delete ${domainName}?`)) {
       try {
-        const response = await fetch(`/api/websites/deleteSite/${domainName}`, {
+        const response = await fetch(`/api/websites/deleteSite/${id}`, {
           method: "DELETE",
         });
 
         if (response.ok) {
-          //setWebsites(prevWebsites => prevWebsites.filter(website => website.domainName !== domainName));
-
           alert(`Site ${domainName} deleted successfully`);
           fetchWebsites();
         } else {
@@ -149,7 +147,7 @@ export default function Websites() {
       {websites.length > 0 &&
         websites.map((website) => (
           <div
-            key={website.domain}
+            key={website.id} // Используем id в качестве ключа
             className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
           >
             {website.isDomainRoskomnadzorBanned ? (
@@ -158,7 +156,7 @@ export default function Websites() {
               <span>{website.domainName}</span>
             )}
             <button
-              onClick={() => deleteWebsite(website.domainName)}
+              onClick={() => deleteWebsite(website.id, website.domainName)}
               className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out"
             >
               Delete

@@ -48,9 +48,9 @@ export class WebsitesController {
     return this.websitesService.createSite(createWebsiteDto.siteName, file);
   }
 
-  @Delete('deleteSite/:siteName')
-  deleteSite(@Param('siteName') siteName: string) {
-    return this.websitesService.deleteSite(siteName);
+  @Delete('deleteSite/:siteId')
+  deleteSite(@Param('siteId') siteId: number) {
+    return this.websitesService.deleteSite(siteId);
   }
 
   @Get('triggerBuild')
