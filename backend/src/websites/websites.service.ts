@@ -53,6 +53,7 @@ export class WebsitesService {
   async createSite(
     siteName: string,
     zipFile?: Express.Multer.File,
+    processZip: boolean = true,
   ): Promise<string> {
     const punycodeDomainName = punycode.toASCII(siteName);
     const sitePath = path.join(this.contentDir, punycodeDomainName);
@@ -61,7 +62,7 @@ export class WebsitesService {
       where: { domainName: punycodeDomainName },
     });
     if (existingWebsite) {
-      throw new Error(
+      this.logger.warn(
         `Website with domain name '${punycodeDomainName}' already exists.`,
       );
     }
@@ -69,11 +70,13 @@ export class WebsitesService {
     try {
       fs.mkdirSync(sitePath, { recursive: true });
 
-      if (zipFile && zipFile.path) {
+      if (processZip && zipFile && zipFile.path) {
         const zip = new AdmZip(zipFile.path);
         zip.extractAllTo(sitePath, true);
         fs.unlinkSync(zipFile.path);
-      } else {
+      }
+
+      if (processZip && !zipFile) {
         fs.writeFileSync(
           path.join(sitePath, 'index.html'),
           `<!DOCTYPE html>
@@ -91,14 +94,19 @@ export class WebsitesService {
         );
       }
 
-      const website = this.websiteRepository.create({
-        domainName: punycodeDomainName,
-      });
-      await this.websiteRepository.save(website);
+      if (!existingWebsite) {
+        const website = this.websiteRepository.create({
+          domainName: punycodeDomainName,
+        });
+        await this.websiteRepository.save(website);
+      }
 
       this.logger.log(`Site ${punycodeDomainName} created successfully`);
-      await this.synchronizeDatabaseWithFileSystem();
-      await this.triggerWebsitesBuild();
+      if (processZip) {
+        await this.synchronizeDatabaseWithFileSystem();
+        await this.triggerWebsitesBuild();
+      }
+
       return `Site ${punycodeDomainName} created successfully`;
     } catch (error) {
       this.logger.error(`Error creating site: ${error}`);
@@ -202,24 +210,26 @@ export class WebsitesService {
     try {
       const zip = new AdmZip(zipFile.path);
       const zipEntries = zip.getEntries();
+      const processedRootFolders = new Set();
 
       for (const zipEntry of zipEntries) {
         if (zipEntry.isDirectory) {
           const siteName = zipEntry.entryName.split('/')[0];
-          const punycodeDomainName = punycode.toASCII(siteName);
 
-          const existingWebsite = await this.websiteRepository.findOne({
-            where: { domainName: punycodeDomainName },
-          });
+          // Check if the root folder has already been processed
+          if (!processedRootFolders.has(siteName)) {
+            processedRootFolders.add(siteName);
 
-          if (!existingWebsite) {
-            const newWebsite = this.websiteRepository.create({
-              domainName: punycodeDomainName,
-            });
-            this.logger.log(
-              `Creating new website from uploading backup: ${punycodeDomainName}`,
-            );
-            await this.websiteRepository.save(newWebsite);
+            const punycodeDomainName = punycode.toASCII(siteName);
+
+            try {
+              await this.createSite(siteName, null, false);
+              this.logger.log(
+                `Created new website from uploading backup: ${punycodeDomainName}`,
+              );
+            } catch (error) {
+              this.logger.error(`Error creating website: ${error}`);
+            }
           }
         }
       }
@@ -227,6 +237,8 @@ export class WebsitesService {
       zip.extractAllTo(sitePath, true);
       restoreBackup = false;
       await fs.promises.unlink(zipFile.path);
+      await this.synchronizeDatabaseWithFileSystem();
+      await this.triggerWebsitesBuild();
       this.logger.log(`Backup uploaded successfully`);
     } catch (error) {
       this.logger.error(`Error processing zip file: ${error}`);
