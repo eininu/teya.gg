@@ -1,3 +1,26 @@
+// TODO: remove mega-backup.zip if process broken
+
+// TODO: rename mega-backup with timestamp
+
+// TODO: fix mega backup for big files (currently broken)
+
+// [Nest] 1  - 01/18/2024, 3:45:02 PM     LOG [WebsitesService] Backup created at: _websites/uploads/mega-backup.zip
+// node:internal/streams/readable:611
+// throw new ERR_OUT_OF_RANGE('size', '<= 1GiB', n);
+// ^
+//
+// RangeError [ERR_OUT_OF_RANGE]: The value of "size" is out of range. It must be <= 1GiB. Received 1382531232
+// at computeNewHighWaterMark (node:internal/streams/readable:611:11)
+// at Readable.read (node:internal/streams/readable:659:27)
+// at shift (/usr/src/app/node_modules/stream-shift/index.js:6:94)
+// at Duplexify._forward (/usr/src/app/node_modules/duplexify/index.js:170:35)
+// at Transform.onreadable (/usr/src/app/node_modules/duplexify/index.js:136:10)
+// at Transform.emit (node:events:519:28)
+// at emitReadable_ (node:internal/streams/readable:832:12)
+// at process.processTicksAndRejections (node:internal/process/task_queues:81:21) {
+//   code: 'ERR_OUT_OF_RANGE'
+// }
+
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
