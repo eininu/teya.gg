@@ -11,6 +11,11 @@ export default function Websites() {
   const [isBannedDomainsChecking, setIsBannedDomainsChecking] = useState(false);
   const [loadingWebsites, setLoadingWebsites] = useState(false);
 
+  // backup
+  const [fileSizeError, setFileSizeError] = useState(false);
+  const maxFileSize = 2 * 1024 * 1024 * 1024;
+  const [showButton, setShowButton] = useState(true);
+
   useEffect(() => {
     fetchWebsites();
   }, []);
@@ -140,6 +145,16 @@ export default function Websites() {
       });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.size > maxFileSize) {
+      setShowButton(false);
+    } else {
+      setShowButton(true);
+      setBackupFile(file);
+    }
+  };
+
   return (
     <div className="p-4">
       <h2 className={"py-2 font-bold text-2xl"}>Websites</h2>
@@ -237,17 +252,26 @@ export default function Websites() {
           type="file"
           name="backupFile"
           accept=".zip"
-          onChange={(e) => setBackupFile(e.target.files[0])}
+          onChange={handleFileChange}
           className="p-2 border border-gray-300 rounded"
         />
-        <button
-          type="submit"
-          className={`bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out ml-2
-            ${uploadingBackup ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={uploadingBackup}
-        >
-          {uploadingBackup ? "Uploading backup" : "Upload Backup"}
-        </button>
+        {showButton && !uploadingBackup && (
+          <button
+            type="submit"
+            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out ml-2"
+          >
+            Upload Backup
+          </button>
+        )}
+        {!showButton && (
+          <span className="text-red-500 ml-2 block pt-3">
+            <p>Your backup file size more than 2GB</p>
+            <p className="text-yellow-500">
+              Please upload your websites manually by ftp into
+              ./backend/_websites/content/
+            </p>
+          </span>
+        )}
       </form>
     </div>
   );
