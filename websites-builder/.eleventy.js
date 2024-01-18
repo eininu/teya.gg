@@ -29,12 +29,19 @@ module.exports = function (eleventyConfig) {
     return parts[0] || "";
   });
 
+  // disable rendering for .html files
+  eleventyConfig.addPassthroughCopy("content");
+  //eleventyConfig.addTemplateFormats("njk");
+
   // Return your Object options:
   return {
     dir: {
       input: "content",
       output: "dist",
     },
-    htmlTemplateEngine: "njk",
+
+    // disable rendering for .html files
+    // htmlTemplateEngine: "njk"
+    htmlTemplateEngine: "html",
   };
 };

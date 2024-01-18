@@ -3,7 +3,7 @@
     "@11ty/eleventy": "^2.0.1"
   },
   "scripts": {
-    "build": "eleventy"
+    "build": "eleventy --quiet"
   },
   "dependencies": {
     "express": "^4.18.2",

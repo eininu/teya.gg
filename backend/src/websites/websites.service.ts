@@ -48,6 +48,7 @@ export class WebsitesService {
       await this.triggerWebsitesBuild();
       this.hasInitialBuildBeenTriggered = true;
     }
+    await this.synchronizeDatabaseWithFileSystem();
     return await this.websiteRepository.find();
   }
 
@@ -357,24 +358,30 @@ export class WebsitesService {
       fs.mkdirSync(this.contentDir, { recursive: true });
     }
 
-    const files = fs.readdirSync(this.contentDir);
+    const items = fs.readdirSync(this.contentDir);
 
-    // Delete records from the database that are not present in the file system
+    // Filter only directories
+    const directories = items.filter((item) => {
+      const fullPath = path.join(this.contentDir, item);
+      return fs.lstatSync(fullPath).isDirectory();
+    });
+
+    // Delete records from database for directories that do not exist in the file system
     let websites = await this.websiteRepository.find();
 
     for (const website of websites) {
-      if (!files.includes(website.domainName)) {
+      if (!directories.includes(website.domainName)) {
         await this.websiteRepository.remove(website);
       }
     }
 
-    // Update the list of websites after deletion from the database
+    // Update websites list
     websites = await this.websiteRepository.find();
 
-    // Add records to the database for files that are present in the file system but not in the database
-    for (const file of files) {
-      if (!websites.some((website) => website.domainName === file)) {
-        await this.createSite(file, null, false);
+    // Add records to database for directories that exist in the file system but not in the database
+    for (const directory of directories) {
+      if (!websites.some((website) => website.domainName === directory)) {
+        await this.createSite(directory, null, false);
       }
     }
 

@@ -7,7 +7,7 @@ const build = async () => {
   await exec("npx eleventy", (error, stdout, stderr) => {
     if (error) {
       console.error(`Runtime error: ${error}`);
-      return res.status(500).send("Build error");
+      return "Build error";
     }
   });
   return "Build completed successfully";

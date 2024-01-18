@@ -278,6 +278,12 @@ export default function Websites() {
         <a className={"block text-blue-500 mt-4"} href="/websites-filebrowser">
           Websites Filebrowser
         </a>
+        <p className={"-mt-1"}>
+          <span className="text-red-500">* </span>
+          <span className="text-black-400 font-light text-sm">
+            Don't forget to delete .zip file after uploading and unpacking
+          </span>
+        </p>
       </form>
     </div>
   );
