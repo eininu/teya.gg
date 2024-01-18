@@ -33,7 +33,7 @@ db:
 	docker-compose -p teya_dev -f docker-compose.dev.yml up --build db
 
 websites:
-	cd websites && node server.js
+	cd websites-builder && node server.js
 
 # migrations
 #migration-new:
