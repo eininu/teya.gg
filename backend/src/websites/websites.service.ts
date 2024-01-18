@@ -44,7 +44,6 @@ export class WebsitesService {
   // }
 
   async getSites(): Promise<Website[]> {
-    await this.synchronizeDatabaseWithFileSystem();
     if (!this.hasInitialBuildBeenTriggered) {
       await this.triggerWebsitesBuild();
       this.hasInitialBuildBeenTriggered = true;
