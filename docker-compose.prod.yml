@@ -32,6 +32,8 @@ services:
       dockerfile: nginx/Dockerfile
       args:
         BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD:-123}
+    environment:
+      - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD:-123}
     ports:
       - "80:80"
       - "443:443"
