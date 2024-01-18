@@ -37,10 +37,11 @@ export class WebsitesService {
     await this.uploadBackupToMega().then((res) => this.logger.log(res));
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  async synchronizeDbWithFs() {
-    await this.synchronizeDatabaseWithFileSystem();
-  }
+  //// temporary disabled cauz will broke build in manual upload
+  // @Cron(CronExpression.EVERY_MINUTE)
+  // async synchronizeDbWithFs() {
+  //   await this.synchronizeDatabaseWithFileSystem();
+  // }
 
   async getSites(): Promise<Website[]> {
     await this.synchronizeDatabaseWithFileSystem();
