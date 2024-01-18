@@ -105,7 +105,7 @@ services:
       - FB_BASEURL=/websites-filebrowser
     restart: always
     networks:
-      - teya-dev-network
+      - teya-prod-network
 
 networks:
   teya-prod-network:
