@@ -353,6 +353,10 @@ export class WebsitesService {
 
     this.isSynchronizing = true;
 
+    if (!fs.existsSync(this.contentDir)) {
+      fs.mkdirSync(this.contentDir, { recursive: true });
+    }
+
     const files = fs.readdirSync(this.contentDir);
 
     // Delete records from the database that are not present in the file system
