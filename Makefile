@@ -2,7 +2,9 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
 ifeq ($(BRANCH),main)
 up:
-	cd backend && docker build -t backend:latest . && cd .. && docker-compose -p teya_prod -f docker-compose.prod.yml up --build  -d
+	cd backend && docker build -t backend:latest . && cd ..
+	docker-compose -p teya_prod -f docker-compose.prod.yml build --no-cache
+	docker-compose -p teya_prod -f docker-compose.prod.yml up -d
 
 # Disabled in CI for prod
 down:

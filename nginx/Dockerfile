@@ -7,7 +7,6 @@ RUN npm run build
 
 FROM nginx:alpine
 ENV DOMAIN_NAME=teya.gg
-ENV BASIC_AUTH_PASSWORD=$BASIC_AUTH_PASSWORD
 
 RUN apk --no-cache add apache2-utils openssl \
     && openssl genrsa -out /etc/ssl/private/$DOMAIN_NAME.key 2048 \
