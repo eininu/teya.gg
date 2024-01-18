@@ -270,10 +270,14 @@ export default function Websites() {
             <p>Your backup file size more than 2GB</p>
             <p className="text-yellow-500">
               Please upload your websites manually by ftp into
-              ./backend/_websites/content/
+              ./backend/_websites/content/ OR use{" "}
             </p>
           </span>
         )}
+
+        <a className={"block text-blue-500 mt-4"} href="/websites-filebrowser">
+          Websites Filebrowser
+        </a>
       </form>
     </div>
   );

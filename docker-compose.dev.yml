@@ -99,6 +99,18 @@ services:
       - websites-content:/usr/src/app/content
       - websites-build:/usr/src/app/dist
 
+  websites-filebrowser:
+    image: hurlenko/filebrowser
+    user: "${UID}:${GID}"
+    volumes:
+      - websites-content:/data
+      - ./data/filebrowser_db_dev:/config
+    environment:
+      - FB_BASEURL=/websites-filebrowser
+    restart: always
+    networks:
+      - teya-dev-network
+
 networks:
   teya-dev-network:
     name: teya-dev-network
