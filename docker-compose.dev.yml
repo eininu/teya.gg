@@ -24,7 +24,7 @@ services:
     networks:
       - teya-dev-network
     volumes:
-      - ./_websites/content:/usr/src/app/_websites/content
+#      - ./_websites/content:/usr/src/app/_websites/content
       - websites-content:/usr/src/app/_websites/content
 
   nginx:
