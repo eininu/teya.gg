@@ -97,7 +97,6 @@ services:
       - websites-content:/usr/src/app/content
       - websites-build:/usr/src/app/dist
 
-
 networks:
   teya-dev-network:
     name: teya-dev-network

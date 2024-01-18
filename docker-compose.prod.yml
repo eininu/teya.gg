@@ -23,7 +23,7 @@ services:
       - teya-prod-network
     volumes:
       - ./pbn/content:/usr/src/app/pbn/content
-      - pbn-content:/usr/src/app/pbn/content
+      - websites-content:/usr/src/app/pbn/content
 
   nginx:
     image: nginx:1.25.3
@@ -41,7 +41,7 @@ services:
     networks:
       - teya-prod-network
     volumes:
-      - pbn-build:/usr/share/nginx/html/pbn
+      - websites-build:/usr/share/nginx/html/pbn
 
   db:
     image: postgres:latest
@@ -78,7 +78,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-prod}
       - DB_DATABASE=${DB_DATABASE:-prod}
 
-  pbn:
+  websites-builder:
     build:
       context: websites-builder
       dockerfile: Dockerfile
@@ -90,8 +90,8 @@ services:
       - backend
     command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; node server.js"]
     volumes:
-      - pbn-content:/usr/src/app/content
-      - pbn-build:/usr/src/app/dist
+      - websites-content:/usr/src/app/content
+      - websites-build:/usr/src/app/dist
 
 networks:
   teya-prod-network:
@@ -99,5 +99,5 @@ networks:
     driver: bridge
 
 volumes:
-  pbn-build: {}
-  pbn-content: {}
+  websites-build: {}
+  websites-content: {}
