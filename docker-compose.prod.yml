@@ -22,8 +22,8 @@ services:
     networks:
       - teya-prod-network
     volumes:
-      - ./pbn/content:/usr/src/app/pbn/content
-      - websites-content:/usr/src/app/pbn/content
+      - ./_websites/content:/usr/src/app/_websites/content
+      - websites-content:/usr/src/app/_websites/content
 
   nginx:
     image: nginx:1.25.3
@@ -41,7 +41,7 @@ services:
     networks:
       - teya-prod-network
     volumes:
-      - websites-build:/usr/share/nginx/html/pbn
+      - websites-build:/usr/share/nginx/html/websites
 
   db:
     image: postgres:latest
