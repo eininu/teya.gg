@@ -19,10 +19,11 @@ export class WebsitesService {
 
   private contentDir = './_websites/content/';
   private logger = new Logger('WebsitesService');
+  private hasInitialBuildBeenTriggered = false;
 
   @Cron('0 */15 * * * *')
   async websitesBuild() {
-    await this.triggerWebsitesBuild().then((res) => this.logger.log(res));
+    await this.triggerWebsitesBuild();
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
@@ -37,6 +38,10 @@ export class WebsitesService {
 
   async getSites(): Promise<Website[]> {
     await this.synchronizeDatabaseWithFileSystem();
+    if (!this.hasInitialBuildBeenTriggered) {
+      await this.triggerWebsitesBuild();
+      this.hasInitialBuildBeenTriggered = true;
+    }
     return await this.websiteRepository.find();
   }
 
@@ -88,7 +93,7 @@ export class WebsitesService {
 
       this.logger.log(`Site ${siteName} created successfully`);
       await this.synchronizeDatabaseWithFileSystem();
-      this.triggerWebsitesBuild().then((res) => this.logger.log(res));
+      await this.triggerWebsitesBuild();
       return `Site ${siteName} created successfully`;
     } catch (error) {
       this.logger.error(`Error creating site: ${error}`);
@@ -128,7 +133,7 @@ export class WebsitesService {
 
       this.logger.log(`Site ${siteName} deleted successfully`);
       await this.synchronizeDatabaseWithFileSystem();
-      this.triggerWebsitesBuild().then((res) => this.logger.log(res));
+      await this.triggerWebsitesBuild();
       return `Site ${siteName} deleted successfully`;
     } catch (error) {
       this.logger.error(`Error deleting site: ${error}`);
@@ -258,8 +263,7 @@ export class WebsitesService {
         this.logger.log('websites-builder is available!');
         return response.data;
       } catch (error) {
-        this.logger.error('Error triggering websites build');
-        // return { message: 'Error triggering websites build' };
+        this.logger.error('All website builder urls are unavailable');
       }
 
       // throw new Error('Error triggering websites build');
@@ -340,7 +344,5 @@ export class WebsitesService {
         await this.websiteRepository.save(newWebsite);
       }
     }
-
-    await this.triggerWebsitesBuild().then((res) => this.logger.log(res));
   }
 }
