@@ -20,6 +20,11 @@ export class WebsitesService {
   private contentDir = './_websites/content/';
   private logger = new Logger('WebsitesService');
   private hasInitialBuildBeenTriggered = false;
+  private domainBuilderUrl =
+    process.env.MY_ENVIRONMENT === 'Production' ||
+    process.env.MY_ENVIRONMENT === 'Development'
+      ? 'http://websites-builder:3001'
+      : 'http://localhost:3001';
 
   @Cron('0 */15 * * * *')
   async websitesBuild() {
@@ -252,21 +257,16 @@ export class WebsitesService {
 
   async triggerWebsitesBuild(): Promise<any> {
     try {
-      const response = await axios.get('http://localhost:3001/build');
+      const response = await axios.get(`${this.domainBuilderUrl}/build`);
+      this.logger.log(
+        `Build triggered successfully with URL: ${this.domainBuilderUrl}`,
+      );
       return response.data;
     } catch (error) {
-      this.logger.warn(
-        'Error triggering websites build with localhost, trying to trigger with websites-builder service host',
+      this.logger.error(
+        `Error triggering websites build with URL: ${this.domainBuilderUrl}`,
       );
-      try {
-        const response = await axios.get('http://websites-builder:3001/build');
-        this.logger.log('websites-builder is available!');
-        return response.data;
-      } catch (error) {
-        this.logger.error('All website builder urls are unavailable');
-      }
-
-      // throw new Error('Error triggering websites build');
+      this.logger.error(error);
     }
   }
 
