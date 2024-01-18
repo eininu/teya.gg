@@ -156,102 +156,41 @@ export class WebsitesService {
   }
 
   async uploadBackup(zipFile: Express.Multer.File): Promise<string> {
+    const initialDate = new Date();
     if (!zipFile || !zipFile.path) {
       return `No zip file provided`;
     }
 
-    const sitePath = path.join(this.contentDir);
-    const backupPath = path.join(this.contentDir, '../uploads/backup.zip');
-
-    if (fs.existsSync(sitePath)) {
-      try {
-        const zip = new AdmZip();
-        zip.addLocalFolder(sitePath);
-        zip.writeZip(backupPath);
-        this.logger.log(`Backup created at: ${backupPath}`);
-      } catch (error) {
-        this.logger.error(`Error creating backup: ${error}`);
-        return `Error creating backup`;
-      }
-    }
+    const backupPath = path.join(
+      this.contentDir,
+      `../uploads/backup-${initialDate}.zip`,
+    );
 
     try {
-      const files = await fs.promises.readdir(sitePath);
-      for (const file of files) {
-        const fullPath = path.join(sitePath, file);
-        const stat = await fs.promises.stat(fullPath);
-        if (stat.isDirectory()) {
-          await fs.promises.rm(fullPath, { recursive: true, force: true });
-        } else {
-          await fs.promises.unlink(fullPath);
-        }
+      this.logger.log(`Start uploading backup`);
+
+      // Clear the content directory
+      if (fs.existsSync(this.contentDir)) {
+        await fs.promises.rm(this.contentDir, { recursive: true, force: true });
       }
-    } catch (error) {
-      this.logger.error(`Error clearing directory: ${error}`);
-      return `Error clearing directory`;
-    }
+      await fs.promises.mkdir(this.contentDir, { recursive: true });
 
-    await fs.promises.mkdir(sitePath, { recursive: true });
-
-    let restoreBackup = true;
-    try {
+      // Extract zip file
       const zip = new AdmZip(zipFile.path);
-      const zipEntries = zip.getEntries();
-
-      for (const zipEntry of zipEntries) {
-        if (zipEntry.isDirectory) {
-          const siteName = zipEntry.entryName.split('/')[0];
-          const punycodeDomainName = punycode.toASCII(siteName);
-
-          const existingWebsite = await this.websiteRepository.findOne({
-            where: { domainName: punycodeDomainName },
-          });
-
-          if (!existingWebsite) {
-            const newWebsite = this.websiteRepository.create({
-              domainName: punycodeDomainName,
-            });
-            await this.websiteRepository.save(newWebsite);
-          }
-        }
-      }
-
-      zip.extractAllTo(sitePath, true);
-      restoreBackup = false;
+      zip.extractAllTo(this.contentDir, true);
       await fs.promises.unlink(zipFile.path);
-      this.logger.log(`Backup uploaded successfully`);
+      this.logger.log(`Backup extracted to ${this.contentDir}`);
+
+      await this.synchronizeDatabaseWithFileSystem();
+      await this.triggerWebsitesBuild();
+      return `Backup uploaded and processed successfully`;
     } catch (error) {
       this.logger.error(`Error processing zip file: ${error}`);
       if (fs.existsSync(zipFile.path)) {
         await fs.promises.unlink(zipFile.path);
       }
+      return `Error occurred during backup processing`;
     }
-
-    if (restoreBackup && fs.existsSync(backupPath)) {
-      try {
-        await fs.promises.rm(sitePath, { recursive: true, force: true });
-        const zip = new AdmZip(backupPath);
-        zip.extractAllTo(sitePath, true);
-        this.logger.log(`Restored from backup`);
-      } catch (error) {
-        this.logger.error(`Error restoring from backup: ${error}`);
-      }
-    }
-
-    if (!restoreBackup && fs.existsSync(backupPath)) {
-      try {
-        await fs.promises.unlink(backupPath);
-        this.logger.log(`Backup deleted successfully`);
-      } catch (error) {
-        this.logger.error(`Error deleting backup: ${error}`);
-      }
-    }
-
-    await this.synchronizeDatabaseWithFileSystem();
-    await this.triggerWebsitesBuild();
-    return restoreBackup
-      ? `Error occurred, restored from backup`
-      : `Backup uploaded successfully`;
   }
 
   async triggerWebsitesBuild(): Promise<any> {
@@ -326,7 +265,8 @@ export class WebsitesService {
   }
 
   async synchronizeDatabaseWithFileSystem() {
-    const files = fs.readdirSync(this.contentDir);
+    const contentPath = path.join(this.contentDir);
+    const files = await fs.promises.readdir(contentPath);
     const websites = await this.websiteRepository.find();
 
     // Delete records from DB, which are not present in the file system
@@ -336,7 +276,7 @@ export class WebsitesService {
       }
     }
 
-    // Add records to DB, which are present in the file system, but not in the DB
+    // Add records to DB, which are present in the file system but not in the DB
     for (const file of files) {
       if (!websites.some((website) => website.domainName === file)) {
         const newWebsite = this.websiteRepository.create({ domainName: file });

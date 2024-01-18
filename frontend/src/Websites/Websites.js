@@ -7,6 +7,7 @@ export default function Websites() {
   const [newWebsite, setNewWebsite] = useState("");
   const [websitesIsRebuilding, setWebsitesIsRebuilding] = useState(false);
   const [loadingBackupToMega, setLoadingBackupToMega] = useState(false);
+  const [uploadingBackup, setUploadingBackup] = useState(false);
   const [isBannedDomainsChecking, setIsBannedDomainsChecking] = useState(false);
   const [loadingWebsites, setLoadingWebsites] = useState(false);
 
@@ -93,7 +94,7 @@ export default function Websites() {
 
   const uploadBackup = (e) => {
     e.preventDefault();
-
+    setUploadingBackup(true);
     const formData = new FormData();
     if (backupFile) {
       formData.append("file", backupFile);
@@ -106,9 +107,13 @@ export default function Websites() {
       .then(() => {
         setNewWebsite("");
         setWebsiteFile(null);
+        setUploadingBackup(false);
         fetchWebsites();
       })
-      .catch((error) => console.error("Error while adding website:", error));
+      .catch((error) => {
+        console.error("Error while adding website:", error);
+        setUploadingBackup(false);
+      });
   };
 
   const handleUploadBackup = async () => {
@@ -237,9 +242,11 @@ export default function Websites() {
         />
         <button
           type="submit"
-          className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out ml-2"
+          className={`bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out ml-2
+            ${uploadingBackup ? "opacity-50 cursor-not-allowed" : ""}`}
+          disabled={uploadingBackup}
         >
-          Upload Backup
+          {uploadingBackup ? "Uploading backup" : "Upload Backup"}
         </button>
       </form>
     </div>
