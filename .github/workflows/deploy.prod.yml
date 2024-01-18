@@ -23,5 +23,4 @@ jobs:
             cd /home/teya/prod/teya.gg
             git checkout main
             git pull
-            make down
             make up

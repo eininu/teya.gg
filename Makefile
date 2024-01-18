@@ -4,6 +4,7 @@ ifeq ($(BRANCH),main)
 up:
 	cd backend && docker build -t backend:latest . && cd .. && docker-compose -p teya_prod -f docker-compose.prod.yml up --build  -d
 
+# Disabled in CI for prod
 down:
 	docker-compose -p teya_prod -f docker-compose.prod.yml down
 
