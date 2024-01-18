@@ -255,14 +255,16 @@ export default function Websites() {
           onChange={handleFileChange}
           className="p-2 border border-gray-300 rounded"
         />
-        {showButton && !uploadingBackup && (
-          <button
-            type="submit"
-            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out ml-2"
-          >
-            Upload Backup
-          </button>
-        )}
+        <button
+          type="submit"
+          disabled={uploadingBackup || fileSizeError}
+          className={`bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out ml-2
+      ${
+        uploadingBackup || fileSizeError ? "opacity-50 cursor-not-allowed" : ""
+      }`}
+        >
+          {uploadingBackup ? "Uploading backup" : "Upload Backup"}
+        </button>
         {!showButton && (
           <span className="text-red-500 ml-2 block pt-3">
             <p>Your backup file size more than 2GB</p>
