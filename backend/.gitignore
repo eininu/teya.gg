@@ -35,7 +35,7 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # websites
-/_websites/content
+/_websites/content/*
 !/_websites/content/example1.com/
 !/_websites/content/example2.com/
-/_websites/uploads
+/_websites/uploads/*
