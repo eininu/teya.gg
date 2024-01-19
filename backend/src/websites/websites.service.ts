@@ -315,7 +315,7 @@ export class WebsitesService {
     const sitePath = path.join(this.contentDir);
     const backupPath = path.join(
       this.contentDir,
-      `../uploads/mega-backup+${initTime}.zip`,
+      `../uploads/mega-backup-${initTime}.zip`,
     );
 
     try {
