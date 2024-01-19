@@ -6,6 +6,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
+# RUN mkdir -p ./_websites/content && touch ./_websites/content/.init
 
 COPY wait-for-it.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/wait-for-it.sh
