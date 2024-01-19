@@ -348,43 +348,63 @@ export class WebsitesService {
   }
 
   async synchronizeDatabaseWithFileSystem() {
+    this.logger.log('[Sync] Starting synchronization...');
+
     if (this.isSynchronizing) {
+      this.logger.warn('[Sync] Synchronization is already in progress');
       return;
     }
 
     this.isSynchronizing = true;
 
-    if (!fs.existsSync(this.contentDir)) {
-      fs.mkdirSync(this.contentDir, { recursive: true });
-    }
-
-    const items = fs.readdirSync(this.contentDir);
-
-    // Filter only directories
-    const directories = items.filter((item) => {
-      const fullPath = path.join(this.contentDir, item);
-      return fs.lstatSync(fullPath).isDirectory();
-    });
-
-    // Delete records from database for directories that do not exist in the file system
-    let websites = await this.websiteRepository.find();
-
-    for (const website of websites) {
-      if (!directories.includes(website.domainName)) {
-        await this.websiteRepository.remove(website);
+    try {
+      if (!fs.existsSync(this.contentDir)) {
+        fs.mkdirSync(this.contentDir, { recursive: true });
       }
-    }
 
-    // Update websites list
-    websites = await this.websiteRepository.find();
+      let items = fs.readdirSync(this.contentDir);
 
-    // Add records to database for directories that exist in the file system but not in the database
-    for (const directory of directories) {
-      if (!websites.some((website) => website.domainName === directory)) {
-        await this.createSite(directory, null, false);
+      // Rename directories to punycode
+      for (const item of items) {
+        const fullPath = path.join(this.contentDir, item);
+        if (fs.lstatSync(fullPath).isDirectory()) {
+          const punycodeName = punycode.toASCII(item);
+          if (punycodeName !== item) {
+            const punycodePath = path.join(this.contentDir, punycodeName);
+            fs.renameSync(fullPath, punycodePath);
+            this.logger.log(`[Sync] Renamed ${item} to ${punycodeName}`);
+          }
+        }
       }
-    }
 
-    this.isSynchronizing = false;
+      // Update items list
+      items = fs.readdirSync(this.contentDir);
+      const directories = items.filter((item) =>
+        fs.lstatSync(path.join(this.contentDir, item)).isDirectory(),
+      );
+
+      // Remove websites that don't exist in the file system
+      let websites = await this.websiteRepository.find();
+
+      for (const website of websites) {
+        if (!directories.includes(website.domainName)) {
+          await this.websiteRepository.remove(website);
+        }
+      }
+
+      websites = await this.websiteRepository.find();
+
+      for (const directory of directories) {
+        if (!websites.some((website) => website.domainName === directory)) {
+          await this.createSite(directory, null, false);
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `[Sync] Error synchronizing database with file system: ${error}`,
+      );
+    } finally {
+      this.isSynchronizing = false;
+    }
   }
 }
