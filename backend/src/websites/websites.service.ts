@@ -404,6 +404,7 @@ export class WebsitesService {
         `[Sync] Error synchronizing database with file system: ${error}`,
       );
     } finally {
+      this.logger.log('[Sync] Synchronization completed');
       this.isSynchronizing = false;
     }
   }
