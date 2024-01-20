@@ -10,6 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Website } from './entities/website.entity';
 import { Repository } from 'typeorm';
 
+const WHO_IS_API = 'https://api.whois7.ru/?q='
+
 @Injectable()
 export class WebsitesService {
   constructor(
@@ -43,11 +45,16 @@ export class WebsitesService {
   //   await this.synchronizeDatabaseWithFileSystem();
   // }
 
+  public getById(id: number): Promise<Website | null> {
+    return this.websiteRepository.findOne({ where: { id } });
+  }
+
   async getSites(): Promise<Website[]> {
     if (!this.hasInitialBuildBeenTriggered) {
       await this.triggerWebsitesBuild();
       this.hasInitialBuildBeenTriggered = true;
     }
+
     await this.synchronizeDatabaseWithFileSystem();
     return await this.websiteRepository.find();
   }
@@ -99,6 +106,7 @@ export class WebsitesService {
       if (!existingWebsite) {
         const website = this.websiteRepository.create({
           domainName: punycodeDomainName,
+          expiredAt: await this.getExpiredDate(punycodeDomainName)
         });
         await this.websiteRepository.save(website);
       }
@@ -407,5 +415,48 @@ export class WebsitesService {
       this.logger.log('[Sync] Synchronization completed');
       this.isSynchronizing = false;
     }
+  }
+
+
+  public async updateWebsite(id: string, dto: Partial<Website>): Promise<Website | undefined>{
+    const website = await this.getById(+id)
+
+    if(!website) {
+      return;
+    }
+
+    const updated = {...website, ...dto}
+    return this.websiteRepository.save(updated)
+  }
+
+  public async updateAllDates(): Promise<Website[]> {
+    const websites = await this.getSites()
+
+     if(websites.length === 0 || !websites) {
+       return;
+     }
+
+    const res = await Promise.all(websites.map(async (s) =>
+       ({...s, expiredAt: await this.getExpiredDate(s.domainName)})
+    ))
+
+    return this.websiteRepository.save(res)
+  }
+
+  public async updatedExpiredDate(id: string): Promise<Website | undefined> {
+    const website = await this.getById(+id)
+
+    if(!website) {
+      return;
+    }
+
+    const res = {...website, expiredAt: await this.getExpiredDate(website.domainName)}
+    return this.websiteRepository.save(res)
+  }
+
+  private async getExpiredDate(domainName: string) {
+    const { data } = await axios.get(`${WHO_IS_API}${domainName}`)
+    const expiredAt = data?.expires
+    return expiredAt ? new Date(expiredAt  * 1000) : null
   }
 }

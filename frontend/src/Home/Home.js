@@ -7,7 +7,6 @@ export default function Home() {
   const fetchWebsites = async () => {
     const response = await fetch("/api/websites");
     const data = await response.json();
-    console.log(data);
     setWebsitesLength(data.length);
   };
 

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {Entity, Column, PrimaryGeneratedColumn, CreateDateColumn} from 'typeorm';
 
 @Entity()
 export class Website {
@@ -10,4 +10,7 @@ export class Website {
 
   @Column({ default: false })
   isDomainRoskomnadzorBanned: boolean;
+
+  @Column({ type: 'timestamptz', default: null })
+  public expiredAt: Date | null;
 }

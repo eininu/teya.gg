@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import punycode from "punycode";
+import axios from 'axios';
+
+import ExpiredDate from "../ExpiredDate/ExpiredDate";
+import { convertedDomainNames } from "../helpers/common";
+
 export default function Websites() {
   const [websites, setWebsites] = useState([]);
   const [websiteFile, setWebsiteFile] = useState(null);
@@ -25,12 +29,10 @@ export default function Websites() {
     fetch("/api/websites")
       .then((response) => response.json())
       .then((data) => {
-        const convertedData = data.map((website) => ({
-          ...website,
-          domainName: punycode.toUnicode(website.domainName),
-        }));
+        const parsedData = convertedDomainNames(data)
+
         setLoadingWebsites(false);
-        setWebsites(convertedData);
+        setWebsites(parsedData);
       })
       .catch((error) => {
         console.error("Error while receiving data:", error);
@@ -155,6 +157,39 @@ export default function Websites() {
     }
   };
 
+
+  const setExpiredDate = async (id) => {
+    const { data } = await axios.patch(`/api/websites/update-date/${id}`);
+
+    if(!data) {
+      return;
+    }
+
+    updateWebsitesStata(data)
+  }
+
+  const updateAllExpiredDates = async () => {
+    const { data } = await axios.patch('/api/websites/update-all-dates');
+    const parsedData = convertedDomainNames(data)
+    setWebsites(parsedData);
+  }
+
+  const updateWebsite = async (id, dto) => {
+    const { data } = await axios.patch(`/api/websites/update/${id}`, dto);
+
+    if(!data) {
+      return;
+    }
+
+    updateWebsitesStata(data)
+  }
+
+  const updateWebsitesStata = (website) => {
+    const updatedData = websites.map((w) => w.id === website.id ? website : w)
+    const parsedData = convertedDomainNames(updatedData)
+    setWebsites(parsedData);
+  }
+
   return (
     <div className="p-4">
       <h2 className={"py-2 font-bold text-2xl"}>Websites</h2>
@@ -170,17 +205,37 @@ export default function Websites() {
             key={website.id} // Используем id в качестве ключа
             className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
           >
-            {website.isDomainRoskomnadzorBanned ? (
-              <s className="text-red-500">{website.domainName}</s>
-            ) : (
-              <span>{website.domainName}</span>
-            )}
-            <button
-              onClick={() => deleteWebsite(website.id, website.domainName)}
-              className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out"
-            >
-              Delete
-            </button>
+            <div className="basis-3/6">
+              {website.isDomainRoskomnadzorBanned ? (
+                  <s className="text-red-500">{website.domainName}</s>
+              ) : (
+                  <span>{website.domainName}</span>
+              )}
+            </div>
+
+
+            <ExpiredDate expiredDate={website.expiredAt}
+              updateDate={(data) => updateWebsite(website.id, data)}
+            />
+
+
+            <div  className="flex gap-4	 items-center">
+              <button
+                  onClick={() => deleteWebsite(website.id, website.domainName)}
+                  className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700 transition duration-300 ease-in-out"
+              >
+                Delete
+              </button>
+
+              <button
+                  onClick={() => setExpiredDate(website.id)}
+                  className="bg-fuchsia-500 text-white py-1 px-3 rounded hover:bg-fuchsia-700 transition duration-300 ease-in-out"
+              >
+                Update Date
+              </button>
+            </div>
+
+
           </div>
         ))}
 
@@ -241,6 +296,13 @@ export default function Websites() {
         {loadingBackupToMega
           ? "Uploading backup to Mega..."
           : "Upload Backup to Mega"}
+      </button>
+
+      <button
+          onClick={() => updateAllExpiredDates()}
+          className="bg-fuchsia-500 text-white ml-5 py-2 px-4 rounded hover:bg-fuchsia-700 transition duration-300 ease-in-out"
+      >
+        Update All Dates
       </button>
 
       <form
