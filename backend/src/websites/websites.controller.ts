@@ -9,16 +9,17 @@ import {
   UploadedFile,
   UsePipes,
   ValidationPipe,
-  Res,
   StreamableFile,
-  Header,
+  Header, Patch,
 } from '@nestjs/common';
 import { WebsitesService } from './websites.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
-import { CreateWebsiteDto } from './dto/create-website.dto';
 import { Readable } from 'stream';
+
+import { CreateWebsiteDto } from './dto/create-website.dto';
+import {Website} from "./entities/website.entity";
 
 @Controller('websites')
 export class WebsitesController {
@@ -90,5 +91,20 @@ export class WebsitesController {
   @Get('mega-backup')
   uploadBackupToMega() {
     return this.websitesService.uploadBackupToMega();
+  }
+
+  @Patch('update-all-dates')
+  public updateAllDates(): Promise<Website[]> {
+    return this.websitesService.updateAllDates();
+  }
+
+  @Patch('update-date/:id')
+  public updatedExpiredDate(@Param('id') id: string): Promise<Website | undefined> {
+    return this.websitesService.updatedExpiredDate(id);
+  }
+
+  @Patch('update/:id')
+  public updateWebsite(@Param('id') id: string, @Body() dto: Partial<Website>): Promise<Website | undefined> {
+    return this.websitesService.updateWebsite(id, dto);
   }
 }
