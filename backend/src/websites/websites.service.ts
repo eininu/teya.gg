@@ -56,7 +56,11 @@ export class WebsitesService {
     }
 
     await this.synchronizeDatabaseWithFileSystem();
-    return await this.websiteRepository.find();
+    return await this.websiteRepository.find({
+      order: {
+        expiredAt: 'ASC',
+      },
+    });
   }
 
   async createSite(

@@ -5,6 +5,7 @@ import ExpiredDate from "../ExpiredDate/ExpiredDate";
 import { convertedDomainNames } from "../helpers/common";
 
 export default function Websites() {
+  const [isLoading, setIsLoading] = useState(false);
   const [websites, setWebsites] = useState([]);
   const [websiteFile, setWebsiteFile] = useState(null);
   const [backupFile, setBackupFile] = useState(null);
@@ -41,6 +42,12 @@ export default function Websites() {
   };
 
   const addWebsite = (e) => {
+    if (isLoading || !newWebsite) {
+      return;
+    }
+
+    setIsLoading(true);
+
     e.preventDefault();
 
     const formData = new FormData();
@@ -58,7 +65,8 @@ export default function Websites() {
         setWebsiteFile(null);
         fetchWebsites();
       })
-      .catch((error) => console.error("Error while adding website:", error));
+      .catch((error) => console.error("Error while adding website:", error))
+      .finally(() => setIsLoading(false))
   };
 
   const deleteWebsite = async (id, domainName) => {
@@ -165,12 +173,13 @@ export default function Websites() {
       return;
     }
 
-    updateWebsitesStata(data)
+    updateWebsitesState(data)
   }
 
   const updateAllExpiredDates = async () => {
     const { data } = await axios.patch('/api/websites/update-all-dates');
     const parsedData = convertedDomainNames(data)
+    parsedData.sort((a, b) => new Date(a.expiredAt) - new Date(b.expiredAt))
     setWebsites(parsedData);
   }
 
@@ -181,12 +190,13 @@ export default function Websites() {
       return;
     }
 
-    updateWebsitesStata(data)
+    updateWebsitesState(data)
   }
 
-  const updateWebsitesStata = (website) => {
+  const updateWebsitesState = (website) => {
     const updatedData = websites.map((w) => w.id === website.id ? website : w)
     const parsedData = convertedDomainNames(updatedData)
+    parsedData.sort((a, b) => new Date(a.expiredAt) - new Date(b.expiredAt))
     setWebsites(parsedData);
   }
 
@@ -259,6 +269,7 @@ export default function Websites() {
         <button
           type="submit"
           className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
+          disabled={isLoading}
         >
           Add
         </button>
