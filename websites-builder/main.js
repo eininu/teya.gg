@@ -11,7 +11,7 @@ let requestAttempted = false;
 
 const getLinks = async () => {
   if (requestAttempted) {
-    return {}; // Возвращаем пустой объект, если уже была попытка запроса
+    return {};
   }
 
   requestAttempted = true;
@@ -21,7 +21,7 @@ const getLinks = async () => {
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
     const response = await fetch("http://backend:3000/pbn-links", {
       timeout: 5000,
-    }); // Добавлен таймаут
+    });
 
     if (!response.ok) {
       console.log("Network response was not ok");
