@@ -64,8 +64,9 @@ async function processFile(filePath, siteName, linksConfig) {
       .replace(/\\/g, "/");
 
     let configPath = "/" + relativePath.replace(/\/index\.html$/, "");
-    if (configPath.endsWith("/")) {
-      configPath = configPath.slice(0, -1);
+    if (configPath === "/index.html") {
+      // Исправление для корректной обработки корневого пути
+      configPath = "/";
     }
 
     if (fileContent.includes("<!-- fJlpVeUpnQpUnJCwBbmRuOaIO -->")) {
