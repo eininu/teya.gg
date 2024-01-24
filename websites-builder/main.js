@@ -52,10 +52,10 @@ function processFile(filePath, siteName) {
       configPath = configPath.slice(0, -1);
     }
 
-    if (fileContent.includes("<!-- replacehere000 -->")) {
+    if (fileContent.includes("<!-- fJlpVeUpnQpUnJCwBbmRuOaIO -->")) {
       if (linksConfig[siteName] && linksConfig[siteName][configPath]) {
         fileContent = fileContent.replace(
-          "<!-- replacehere000 -->",
+          "<!-- fJlpVeUpnQpUnJCwBbmRuOaIO -->",
           linksConfig[siteName][configPath].join(" "),
         );
       }
