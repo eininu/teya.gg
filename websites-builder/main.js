@@ -1,5 +1,11 @@
 const fs = require("fs");
 const path = require("path");
+const util = require("util");
+
+const readdir = util.promisify(fs.readdir);
+const lstat = util.promisify(fs.lstat);
+const unlink = util.promisify(fs.unlink);
+const rmdir = util.promisify(fs.rmdir);
 
 const linksConfig = {
   "example1.com": {
@@ -25,17 +31,18 @@ const linksConfig = {
 const contentDir = path.resolve("./content");
 const distDir = path.resolve("./dist");
 
-function clearDirectory(directory) {
+async function clearDirectory(directory) {
   if (fs.existsSync(directory)) {
-    fs.readdirSync(directory).forEach((file) => {
+    const files = await readdir(directory);
+    for (const file of files) {
       const curPath = path.join(directory, file);
-      if (fs.lstatSync(curPath).isDirectory()) {
-        clearDirectory(curPath);
+      if ((await lstat(curPath)).isDirectory()) {
+        await clearDirectory(curPath);
+        await rmdir(curPath);
       } else {
-        fs.unlinkSync(curPath);
+        await unlink(curPath);
       }
-    });
-    fs.rmdirSync(directory);
+    }
   }
 }
 
@@ -83,8 +90,8 @@ function processDirectory(directory, siteName) {
   });
 }
 
-function main() {
-  clearDirectory(distDir);
+async function main() {
+  await clearDirectory(distDir);
   try {
     fs.readdirSync(contentDir, { withFileTypes: true }).forEach((dirent) => {
       if (dirent.isDirectory()) {
