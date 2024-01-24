@@ -49,7 +49,7 @@ function processFile(filePath, siteName) {
 
     let configPath = "/" + relativePath.replace(/\/index\.html$/, "");
     if (configPath.endsWith("/")) {
-      configPath = configPath.slice(0, -1); // Удаляем последний символ, если это слеш
+      configPath = configPath.slice(0, -1);
     }
 
     if (fileContent.includes("<!-- replacehere000 -->")) {

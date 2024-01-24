@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Website } from './entities/website.entity';
 import { Repository } from 'typeorm';
 
-const WHO_IS_API = 'https://api.whois7.ru/?q='
+const WHO_IS_API = 'https://api.whois7.ru/?q=';
 
 @Injectable()
 export class WebsitesService {
@@ -101,7 +101,7 @@ export class WebsitesService {
     <title>${siteName}</title>
     <!--    <link rel="stylesheet" href="style.css">--><body>
 <h1>${siteName}</h1>
-{% include "_includes/links.njk" %}
+<!-- replacehere000 -->
 </body>
 </html>`,
         );
@@ -110,7 +110,7 @@ export class WebsitesService {
       if (!existingWebsite) {
         const website = this.websiteRepository.create({
           domainName: punycodeDomainName,
-          expiredAt: await this.getExpiredDate(punycodeDomainName)
+          expiredAt: await this.getExpiredDate(punycodeDomainName),
         });
         await this.websiteRepository.save(website);
       }
@@ -421,46 +421,54 @@ export class WebsitesService {
     }
   }
 
+  public async updateWebsite(
+    id: string,
+    dto: Partial<Website>,
+  ): Promise<Website | undefined> {
+    const website = await this.getById(+id);
 
-  public async updateWebsite(id: string, dto: Partial<Website>): Promise<Website | undefined>{
-    const website = await this.getById(+id)
-
-    if(!website) {
+    if (!website) {
       return;
     }
 
-    const updated = {...website, ...dto}
-    return this.websiteRepository.save(updated)
+    const updated = { ...website, ...dto };
+    return this.websiteRepository.save(updated);
   }
 
   public async updateAllDates(): Promise<Website[]> {
-    const websites = await this.getSites()
+    const websites = await this.getSites();
 
-     if(websites.length === 0 || !websites) {
-       return;
-     }
-
-    const res = await Promise.all(websites.map(async (s) =>
-       ({...s, expiredAt: await this.getExpiredDate(s.domainName)})
-    ))
-
-    return this.websiteRepository.save(res)
-  }
-
-  public async updatedExpiredDate(id: string): Promise<Website | undefined> {
-    const website = await this.getById(+id)
-
-    if(!website) {
+    if (websites.length === 0 || !websites) {
       return;
     }
 
-    const res = {...website, expiredAt: await this.getExpiredDate(website.domainName)}
-    return this.websiteRepository.save(res)
+    const res = await Promise.all(
+      websites.map(async (s) => ({
+        ...s,
+        expiredAt: await this.getExpiredDate(s.domainName),
+      })),
+    );
+
+    return this.websiteRepository.save(res);
+  }
+
+  public async updatedExpiredDate(id: string): Promise<Website | undefined> {
+    const website = await this.getById(+id);
+
+    if (!website) {
+      return;
+    }
+
+    const res = {
+      ...website,
+      expiredAt: await this.getExpiredDate(website.domainName),
+    };
+    return this.websiteRepository.save(res);
   }
 
   private async getExpiredDate(domainName: string) {
-    const { data } = await axios.get(`${WHO_IS_API}${domainName}`)
-    const expiredAt = data?.expires
-    return expiredAt ? new Date(expiredAt  * 1000) : null
+    const { data } = await axios.get(`${WHO_IS_API}${domainName}`);
+    const expiredAt = data?.expires;
+    return expiredAt ? new Date(expiredAt * 1000) : null;
   }
 }
