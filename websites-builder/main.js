@@ -79,13 +79,27 @@ function processFile(filePath, siteName) {
   }
 }
 
+function copyFile(filePath, siteName) {
+  const relativePath = path.relative(path.join(contentDir, siteName), filePath);
+  const distFilePath = path.join(distDir, siteName, relativePath);
+  if (!fs.existsSync(path.dirname(distFilePath))) {
+    fs.mkdirSync(path.dirname(distFilePath), { recursive: true });
+  }
+  fs.copyFileSync(filePath, distFilePath); // Копируем файл
+  console.log(`Copied to: ${distFilePath}`);
+}
+
 function processDirectory(directory, siteName) {
   fs.readdirSync(directory, { withFileTypes: true }).forEach((dirent) => {
     const fullPath = path.join(directory, dirent.name);
     if (dirent.isDirectory()) {
       processDirectory(fullPath, siteName);
-    } else if (dirent.isFile() && path.extname(fullPath) === ".html") {
-      processFile(fullPath, siteName);
+    } else if (dirent.isFile()) {
+      if (path.extname(fullPath) === ".html") {
+        processFile(fullPath, siteName);
+      } else {
+        copyFile(fullPath, siteName);
+      }
     }
   });
 }
