@@ -1,3 +1,9 @@
+// TODO: There is a problem: Need to unify html code part, cauz if all websites
+// will have same <!-- fJlpVeUpnQpUnJCwBbmRuOaIO --> it will connect them as PBN
+// and it's not good. Need to make it unique for each website.
+
+// And if we willmake this code for websites which not be used in pbn links - it's still bad
+
 const fs = require("fs").promises;
 const path = require("path");
 const util = require("util");
