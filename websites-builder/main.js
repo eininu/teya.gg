@@ -1,11 +1,7 @@
-const fs = require("fs");
+const fs = require("fs").promises;
 const path = require("path");
 const util = require("util");
-
-const readdir = util.promisify(fs.readdir);
-const lstat = util.promisify(fs.lstat);
-const unlink = util.promisify(fs.unlink);
-const rmdir = util.promisify(fs.rmdir);
+const fsBase = require("fs");
 
 let requestAttempted = false;
 
@@ -39,25 +35,29 @@ const contentDir = path.resolve("./content");
 const distDir = path.resolve("./dist");
 
 async function clearDirectory(directory) {
-  const linksConfig = await getLinks();
-
-  if (fs.existsSync(directory)) {
-    const files = await readdir(directory);
+  try {
+    await fs.access(directory);
+    const files = await fs.readdir(directory);
     for (const file of files) {
       const curPath = path.join(directory, file);
-      if ((await lstat(curPath)).isDirectory()) {
+      const stat = await fs.lstat(curPath);
+      if (stat.isDirectory()) {
         await clearDirectory(curPath);
-        await rmdir(curPath);
+        await fs.rmdir(curPath);
       } else {
-        await unlink(curPath);
+        await fs.unlink(curPath);
       }
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      throw error;
     }
   }
 }
 
-function processFile(filePath, siteName) {
+async function processFile(filePath, siteName, linksConfig) {
   try {
-    let fileContent = fs.readFileSync(filePath, "utf8");
+    let fileContent = await fs.readFile(filePath, "utf8");
 
     let relativePath = path
       .relative(path.join(contentDir, siteName), filePath)
@@ -78,49 +78,55 @@ function processFile(filePath, siteName) {
     }
 
     const distFilePath = path.join(distDir, siteName, relativePath);
-    if (!fs.existsSync(path.dirname(distFilePath))) {
-      fs.mkdirSync(path.dirname(distFilePath), { recursive: true });
+    if (!fsBase.existsSync(path.dirname(distFilePath))) {
+      fsBase.mkdirSync(path.dirname(distFilePath), { recursive: true });
     }
-    fs.writeFileSync(distFilePath, fileContent);
+    fsBase.writeFileSync(distFilePath, fileContent);
     console.log(`Processed and written to: ${distFilePath}`);
   } catch (error) {
     console.error(`Error processing ${filePath}: ${error}`);
   }
 }
 
-function copyFile(filePath, siteName) {
+async function copyFile(filePath, siteName) {
   const relativePath = path.relative(path.join(contentDir, siteName), filePath);
   const distFilePath = path.join(distDir, siteName, relativePath);
-  if (!fs.existsSync(path.dirname(distFilePath))) {
-    fs.mkdirSync(path.dirname(distFilePath), { recursive: true });
-  }
-  fs.copyFileSync(filePath, distFilePath); // Копируем файл
+  await fs.mkdir(path.dirname(distFilePath), { recursive: true });
+  await fs.copyFile(filePath, distFilePath);
   console.log(`Copied to: ${distFilePath}`);
 }
 
-function processDirectory(directory, siteName) {
-  fs.readdirSync(directory, { withFileTypes: true }).forEach((dirent) => {
+async function processDirectory(directory, siteName, linksConfig) {
+  const dirents = await fs.readdir(directory, { withFileTypes: true });
+  const tasks = dirents.map(async (dirent) => {
     const fullPath = path.join(directory, dirent.name);
     if (dirent.isDirectory()) {
-      processDirectory(fullPath, siteName);
-    } else if (dirent.isFile()) {
-      if (path.extname(fullPath) === ".html") {
-        processFile(fullPath, siteName);
-      } else {
-        copyFile(fullPath, siteName);
-      }
+      await processDirectory(fullPath, siteName, linksConfig);
+    } else if (dirent.isFile() && path.extname(fullPath) === ".html") {
+      await processFile(fullPath, siteName, linksConfig);
+    } else {
+      await copyFile(fullPath, siteName);
     }
   });
+  await Promise.all(tasks);
 }
 
 async function main() {
+  const linksConfig = await getLinks();
   await clearDirectory(distDir);
   try {
-    fs.readdirSync(contentDir, { withFileTypes: true }).forEach((dirent) => {
-      if (dirent.isDirectory()) {
-        processDirectory(path.join(contentDir, dirent.name), dirent.name);
-      }
-    });
+    const dirents = await fs.readdir(contentDir, { withFileTypes: true });
+    await Promise.all(
+      dirents.map((dirent) => {
+        if (dirent.isDirectory()) {
+          return processDirectory(
+            path.join(contentDir, dirent.name),
+            dirent.name,
+            linksConfig,
+          );
+        }
+      }),
+    );
   } catch (error) {
     console.error(`Error: ${error}`);
   }
