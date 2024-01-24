@@ -4,6 +4,9 @@
 
 // And if we willmake this code for websites which not be used in pbn links - it's still bad
 
+// TODO: Add code minification
+// TODO: Delete images less than 100B, cauz it's placeholder images from restored archives
+
 const fs = require("fs").promises;
 const path = require("path");
 const util = require("util");
