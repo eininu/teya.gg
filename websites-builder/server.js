@@ -4,7 +4,7 @@ const app = express();
 const port = 3001;
 
 const build = async () => {
-  await exec("npm run build", (error, stdout, stderr) => {
+  await exec("node main.js", (error, stdout, stderr) => {
     if (error) {
       console.error(`Runtime error: ${error}`);
       return "Build error";
