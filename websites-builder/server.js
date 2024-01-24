@@ -4,7 +4,7 @@ const app = express();
 const port = 3001;
 
 const build = async () => {
-  await exec("npx eleventy", (error, stdout, stderr) => {
+  await exec("npm run build", (error, stdout, stderr) => {
     if (error) {
       console.error(`Runtime error: ${error}`);
       return "Build error";

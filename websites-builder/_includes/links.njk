@@ -1,5 +1,0 @@
-{% set currentSite = page.url | extractDirName %}
-{% set siteLinks = links[currentSite]["/"] %}
-<ul>
-    {% for link in siteLinks %}<li>{{ link | safe }}</li>{% endfor %}
-</ul>
