@@ -7,31 +7,40 @@ const lstat = util.promisify(fs.lstat);
 const unlink = util.promisify(fs.unlink);
 const rmdir = util.promisify(fs.rmdir);
 
-const linksConfig = {
-  "example1.com": {
-    "/": [
-      'some text for example1 with <a href="https://test.com/">anchor1</a> here',
-    ],
-    "/smth": [
-      'some text for example1 with <a href="https://test.com/">anchor2</a> here',
-    ],
-    "/about.html": [
-      'some text for example1 with <a href="https://test.com/">anchor3</a> here',
-    ],
-  },
-  "example2.com": {
-    "/": [
-      'some text for example2 with <a href="https://test2.com/">anchor4</a> here',
-    ],
-    "/smth": [
-      'some text for example2 with <a href="https://test2.com/">anchor5</a> here',
-    ],
-  },
+let requestAttempted = false;
+
+const getLinks = async () => {
+  if (requestAttempted) {
+    return {}; // Возвращаем пустой объект, если уже была попытка запроса
+  }
+
+  requestAttempted = true;
+
+  try {
+    const fetch = (...args) =>
+      import("node-fetch").then(({ default: fetch }) => fetch(...args));
+    const response = await fetch("http://backend:3000/pbn-links", {
+      timeout: 5000,
+    }); // Добавлен таймаут
+
+    if (!response.ok) {
+      console.log("Network response was not ok");
+      return {};
+    }
+
+    return response.json();
+  } catch (error) {
+    console.log("Fetch error:", error);
+    return {};
+  }
 };
+
 const contentDir = path.resolve("./content");
 const distDir = path.resolve("./dist");
 
 async function clearDirectory(directory) {
+  const linksConfig = await getLinks();
+
   if (fs.existsSync(directory)) {
     const files = await readdir(directory);
     for (const file of files) {
