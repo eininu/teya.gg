@@ -167,6 +167,10 @@ export class WebsitesService {
     }
   }
 
+  public saveWebsites(websites: Website[]): Promise<Website[]> {
+    return this.websiteRepository.save(websites)
+  }
+
   // export websites as zip archive
   createArchive(): Buffer {
     const contentDir = path.join(this.contentDir);
