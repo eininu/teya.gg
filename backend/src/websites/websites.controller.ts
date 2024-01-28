@@ -94,7 +94,7 @@ export class WebsitesController {
   }
 
   @Patch('update-all-dates')
-  public updateAllDates(): Promise<Website[]> {
+  public updateAllDates(): Promise<Website[] | void> {
     return this.websitesService.updateAllDates();
   }
 
