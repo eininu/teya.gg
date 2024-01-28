@@ -11,6 +11,9 @@ import * as csvParser from 'csv-parser';
 import * as punycode from 'punycode';
 import * as iconv from 'iconv-lite';
 import { Readable } from 'stream';
+import { JSDOM } from 'jsdom';
+import { ACMA_URL, ACMA_PARAMS, HAZARD_URL, HAZARD_PARAMS } from "./constants/";
+
 @Injectable()
 export class DomainBanCheckerService {
   private readonly logger = new Logger(DomainBanCheckerService.name);
@@ -234,5 +237,100 @@ export class DomainBanCheckerService {
       { domainName },
       { isDomainRoskomnadzorBanned: isBanned },
     );
+  }
+
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  public async startAustralianCron(): Promise<void> {
+    await this.checkAustralianDomainBan()
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  public async startPolishCron(): Promise<void> {
+    await this.checkPolishDomainBan()
+  }
+
+  public async checkAustralianDomainBan(): Promise<Website[]> {
+    try {
+      const htmlResponse = await fetch(ACMA_URL, ACMA_PARAMS).then((response) => {
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+        }
+        return response.text();
+      })
+          .catch((error) => {
+            this.logger.error('Error check Australian domains');
+            this.logger.error(error);
+          });
+
+      const dom = new JSDOM(htmlResponse);
+      const elements = dom.window.document.querySelectorAll(".field.field--name-field-dl-definition.field--type-text-long.field--label-hidden.field__item");
+      const parsedSitesFromHtml =  Array.from(elements).map((container: Element) => {
+        const paragraph = container.querySelector("p");
+        if (paragraph) {
+          const textContent = Array.from(paragraph.childNodes)
+              .map((node: Node) => node.textContent.trim())
+              .filter(Boolean)
+              .join(' ');
+
+          return textContent;
+        }
+      }).filter(Boolean);
+
+      if(!parsedSitesFromHtml) {
+        this.logger.error('Error check Australian domains');
+        return;
+      }
+
+      const bannedSites = parsedSitesFromHtml.reduce((acc, rec) => {
+        const sites =  rec.split(' ')
+        return [...acc, ...sites]
+      }, [])
+
+
+      const websites = await this.websitesService.getSites()
+
+      const updatedSites = websites.map((website) => {
+        const isAcmaBanned = bannedSites.some((banned) => website.domainName === banned)
+        return {...website, isAcmaBanned }
+      })
+
+      this.logger.log('Australian verification was successful. Database updated');
+      return this.websitesService.saveWebsites(updatedSites)
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  public async checkPolishDomainBan(): Promise<Website[]> {
+    try {
+      const sites = await this.websitesService.getSites()
+
+      if(!sites || sites.length === 0) {
+        return;
+      }
+
+      const updatedSites = await Promise.all(sites.map((website) => {
+        if(website.isPlHazardBanned) {
+          return website
+        }
+
+        return fetch(`${HAZARD_URL}${website.domainName}`, HAZARD_PARAMS).then((response) => response.json()).then((response) => {
+          const sites = response?.data
+          if(!sites) {
+            return website
+          }
+
+          const banned = sites.find((w) => w.DomainAddress === website.domainName)
+          return  {...website, isPlHazardBanned: !!banned}
+        })
+      }))
+      this.logger.log('Polish verification was successful. Database updated');
+
+      return this.websitesService.saveWebsites(updatedSites)
+    } catch (error) {
+      this.logger.error('Error check Poland domains');
+      this.logger.error(error);
+    }
   }
 }

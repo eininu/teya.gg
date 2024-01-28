@@ -1,5 +1,6 @@
-import { Controller, Get, Logger } from '@nestjs/common';
+import {Body, Controller, Get, Logger, Param, Patch} from '@nestjs/common';
 import { DomainBanCheckerService } from './domain-ban-checker.service';
+import {Website} from "../websites/entities/website.entity";
 
 @Controller('domain-ban-checker')
 export class DomainBanCheckerController {
@@ -31,5 +32,15 @@ export class DomainBanCheckerController {
       this.logger.error('Error running cron logic', error);
       throw error;
     }
+  }
+
+  @Patch('check-australian-domains')
+  public checkAustralianDomainBan(): Promise<Website[] | undefined> {
+    return this.domainBanCheckerService.checkAustralianDomainBan();
+  }
+
+  @Patch('check-polish-domains')
+  public checkPolishDomainBan(): Promise<Website[] | undefined> {
+    return this.domainBanCheckerService.checkPolishDomainBan();
   }
 }

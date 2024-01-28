@@ -178,6 +178,10 @@ export default function Websites() {
 
   const updateAllExpiredDates = async () => {
     const { data } = await axios.patch('/api/websites/update-all-dates');
+    if(!data) {
+      return;
+    }
+
     const parsedData = convertedDomainNames(data)
     parsedData.sort((a, b) => new Date(a.expiredAt) - new Date(b.expiredAt))
     setWebsites(parsedData);
@@ -191,6 +195,24 @@ export default function Websites() {
     }
 
     updateWebsitesState(data)
+  }
+
+  const checkDomains = async (country) => {
+    const { data } = await axios.patch(`/api/domain-ban-checker/check-${country}-domains`);
+
+    if(!data) {
+      return;
+    }
+
+    updateWebsitesState(data)
+  }
+
+  const checkPolishDomains = async () => {
+    await checkDomains('polish')
+  }
+
+  const checkAustralianDomains = async () => {
+    await checkDomains('australian')
   }
 
   const updateWebsitesState = (website) => {
@@ -216,11 +238,10 @@ export default function Websites() {
             className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
           >
             <div className="basis-3/6">
-              {website.isDomainRoskomnadzorBanned ? (
-                  <s className="text-red-500">{website.domainName}</s>
-              ) : (
-                  <span>{website.domainName}</span>
-              )}
+              <span className="mr-2">{website.domainName}</span>
+              {website.isDomainRoskomnadzorBanned && <small className="text-red-500 text-xs">[RKN]</small>}
+              {website.isAcmaBanned && <small className="text-red-500">[ACMA]</small>}
+              {website.isPlHazardBanned && <small className="text-red-500">[PL_HAZARD]</small>}
             </div>
 
 
@@ -315,6 +336,22 @@ export default function Websites() {
       >
         Update All Dates
       </button>
+
+      <div className="flex gap-4 mt-4">
+        <button
+            onClick={checkPolishDomains}
+            className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out"
+        >
+          Check Polish domains
+        </button>
+
+        <button
+            onClick={checkAustralianDomains}
+            className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out"
+        >
+          Check Australian domains
+        </button>
+      </div>
 
       <form
         onSubmit={uploadBackup}

@@ -11,6 +11,12 @@ export class Website {
   @Column({ default: false })
   isDomainRoskomnadzorBanned: boolean;
 
+  @Column({ default: false })
+  isAcmaBanned: boolean;
+
+  @Column({ default: false })
+  isPlHazardBanned: boolean;
+
   @Column({ type: 'timestamptz', default: null })
   public expiredAt: Date | null;
 }
