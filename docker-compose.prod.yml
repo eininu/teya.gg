@@ -39,7 +39,7 @@ services:
       - "443:443"
     depends_on:
       - backend
-    command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; nginx -g 'daemon off;'"]
+    command: ["/bin/sh", "-c", "until ping -c1 backend &>/dev/null; do echo 'Waiting for backend...'; sleep 1; done; /start.sh"]
     networks:
       - teya-prod-network
     volumes:
