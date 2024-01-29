@@ -3,7 +3,7 @@
 start_goaccess() {
     killall goaccess
 
-    goaccess --real-time-html &
+    goaccess &
 }
 
 nginx -g 'daemon off;' &
