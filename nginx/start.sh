@@ -1,6 +1,14 @@
 #!/bin/sh
-# Запуск goaccess в фоновом режиме или в отдельном процессе
-goaccess --real-time-html &
 
-# Запуск nginx в переднем плане
-nginx -g 'daemon off;'
+start_goaccess() {
+    killall goaccess
+
+    goaccess --real-time-html &
+}
+
+nginx -g 'daemon off;' &
+
+while true; do
+    start_goaccess
+    sleep 60
+done
