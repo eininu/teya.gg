@@ -1,4 +1,4 @@
-export const HAZARD_URL = "https://hazard.mf.gov.pl/BlockedRegisterPositions?pageIndex=1&pageSize=15&DomainAddress="
+export const HAZARD_URL = "https://hazard.mf.gov.pl/BlockedRegisterPositions?pageIndex=1&DomainAddress="
 
 export const HAZARD_PARAMS: RequestInit = {
     "headers": {

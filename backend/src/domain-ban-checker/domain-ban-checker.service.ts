@@ -326,7 +326,6 @@ export class DomainBanCheckerService {
         })
       }))
       this.logger.log('Polish verification was successful. Database updated');
-
       return this.websitesService.saveWebsites(updatedSites)
     } catch (error) {
       this.logger.error('Error check Poland domains');

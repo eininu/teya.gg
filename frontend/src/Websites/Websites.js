@@ -15,6 +15,8 @@ export default function Websites() {
   const [uploadingBackup, setUploadingBackup] = useState(false);
   const [isBannedDomainsChecking, setIsBannedDomainsChecking] = useState(false);
   const [loadingWebsites, setLoadingWebsites] = useState(false);
+  const [isPolishLoading, setIsPolishLoading] = useState(false);
+  const [isAustLoading, setIsAustLoading] = useState(false);
 
   // backup
   const [fileSizeError, setFileSizeError] = useState(false);
@@ -208,11 +210,15 @@ export default function Websites() {
   }
 
   const checkPolishDomains = async () => {
+    setIsPolishLoading(true)
     await checkDomains('polish')
+    setIsPolishLoading(false)
   }
 
   const checkAustralianDomains = async () => {
+    setIsAustLoading(true)
     await checkDomains('australian')
+    setIsAustLoading(false)
   }
 
   const updateWebsitesState = (website) => {
@@ -342,14 +348,14 @@ export default function Websites() {
             onClick={checkPolishDomains}
             className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out"
         >
-          Check Polish domains
+          { isPolishLoading ? "Loading..." : "Check Polish domains" }
         </button>
 
         <button
             onClick={checkAustralianDomains}
             className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700 transition duration-300 ease-in-out"
         >
-          Check Australian domains
+          { isAustLoading ? "Loading..." : "Check Australian domains" }
         </button>
       </div>
 
