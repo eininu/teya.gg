@@ -5,6 +5,7 @@ RUN npm install
 COPY ./frontend/ .
 RUN npm run build
 
+# TODO: Need block seo bots, like ahrefs, semrush, etc
 FROM nginx:alpine
 ENV DOMAIN_NAME=teya.gg
 ARG BASIC_AUTH_PASSWORD
