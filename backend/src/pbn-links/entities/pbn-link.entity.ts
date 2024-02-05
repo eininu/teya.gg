@@ -1,13 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
+import {Link} from "../../links/entities/link.entity";
 
 @Entity()
 export class PbnLink {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  public id: string;
 
-  @Column()
-  website: string;
+  @Column({default: null})
+  public website: string;
 
-  @Column('jsonb')
-  websiteLinks: any;
+  @OneToMany(() => Link, (link) =>  link.website)
+  public links: Link[]
 }

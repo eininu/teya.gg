@@ -3,6 +3,7 @@ import Header from "./Layout/Header";
 import Footer from "./Layout/Footer";
 import Home from "./Home/Home";
 import Websites from "./Websites/Websites";
+import PbnLinks from "./PbnLinks/PbnLinks";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             */}
 
             <Routes>
+              <Route path="/pbn-links" element={<PbnLinks />} />
               <Route path="/websites" element={<Websites />} />
               <Route path="/" element={<Home />} />
             </Routes>
