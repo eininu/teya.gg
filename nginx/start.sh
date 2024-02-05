@@ -6,7 +6,7 @@
 #    goaccess &
 #}
 
-nginx -g 'daemon off;'# &
+#nginx -g 'daemon off;'# &
 
 #while true; do
 #    start_goaccess
