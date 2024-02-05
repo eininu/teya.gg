@@ -10,6 +10,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PbnLinksModule } from './pbn-links/pbn-links.module';
 import { WebsitesModule } from './websites/websites.module';
+import {LinksModule} from "./links/links.module";
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({ ...ormconfig.options }),
@@ -20,6 +22,7 @@ import { WebsitesModule } from './websites/websites.module';
       rootPath: join(__dirname, '..', '..', 'public'),
     }),
     PbnLinksModule,
+    LinksModule
     // WebsitesModule,
   ],
   controllers: [AppController],
