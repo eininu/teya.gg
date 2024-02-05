@@ -16,6 +16,7 @@ export default function PbnLinks() {
     const [linksQuery, setLinksQuery] = useState({limit: DEFAULT_LIMIT, skip: 0});
     const [isImportJson, setIsImportJson] = useState(false);
     const [newPbnLinks, setNewPbnLinks] = useState("");
+    const [loadingBackupToMega, setLoadingBackupToMega] = useState(false);
 
     useEffect(() => {
         getPbnLinks()
@@ -49,6 +50,18 @@ export default function PbnLinks() {
         setLinksQuery({ ...linksQuery, ...query })
     }
 
+
+    const handleUploadBackup = async () => {
+        setLoadingBackupToMega(true);
+
+        fetch("/api/pbn-links/upload-backup-mega")
+            .catch((error) =>
+                console.error("Error while loading mega backup:", error),
+            )
+            .finally(() => {
+                setLoadingBackupToMega(false);
+            });
+    };
 
     const exportJSON = async () => {
         const { data } = await axios.get('/api/pbn-links/get-all');
@@ -108,13 +121,30 @@ export default function PbnLinks() {
                             onChange={(e) => setNewPbnLinks(e.target.value)}
 
                         />)
-                        : (<button
-                            onClick={exportJSON}
-                            type="button"
-                            className="ml-5 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out"
-                        >
-                            Export JSON
-                        </button>)
+                        : (
+                            <div>
+                                <button
+                                    type="button"
+                                    onClick={handleUploadBackup}
+                                    className={`ml-5 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700 transition duration-300 ease-in-out ${
+                                    loadingBackupToMega ? "opacity-50 cursor-not-allowed" : ""
+                                    }`}
+                                    disabled={loadingBackupToMega}
+                                >
+                                     {loadingBackupToMega
+                                    ? "Uploading backup to Mega..."
+                                    : "Upload Backup to Mega"}
+                                </button>
+
+                                <button
+                                    onClick={exportJSON}
+                                    type="button"
+                                    className="ml-5 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out"
+                                >
+                                    Export JSON
+                                </button>
+                            </div>
+                        )
                 }
                 <button
                     onClick={importJSON}
@@ -125,7 +155,7 @@ export default function PbnLinks() {
                 </button>
             </div>
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8 justify-between">
                 <Search onSearch={setQuery}/>
                 <form  className="flex items-center gap-4">
                     <input

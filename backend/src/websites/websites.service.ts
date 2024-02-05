@@ -9,6 +9,7 @@ import * as punycode from 'punycode';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Website } from './entities/website.entity';
 import { Repository } from 'typeorm';
+import {getBackNameByTime} from "../common/helper";
 
 const WHO_IS_API = 'https://api.whois7.ru/?q=';
 
@@ -317,12 +318,7 @@ export class WebsitesService {
       return;
     }
 
-    const currentDate = new Date();
-    const backupName = `[${
-      process.env.MY_ENVIRONMENT
-    }] backup-${currentDate.getFullYear()}-${
-      currentDate.getMonth() + 1
-    }-${currentDate.getDate()}-${currentDate.getHours()}${currentDate.getMinutes()}`;
+    const backupName = getBackNameByTime(`[${process.env.MY_ENVIRONMENT}] backup`)
     const { Storage } = { ...mega };
     const storage = new Storage({ email: login, password: password });
 
