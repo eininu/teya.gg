@@ -17,10 +17,10 @@ RUN apk --no-cache add apache2-utils openssl goaccess \
 
 COPY ./nginx/configs /etc/nginx
 COPY --from=frontend-build /app/build /usr/share/nginx/html/frontend
-COPY ./nginx/goaccess.conf /etc/goaccess/goaccess.conf
-RUN touch /var/log/nginx/access_pbn.log
+#COPY ./nginx/goaccess.conf /etc/goaccess/goaccess.conf
+#RUN touch /var/log/nginx/access_pbn.log
 
-COPY ./nginx/start.sh /start.sh
-RUN chmod +x /start.sh
+#COPY ./nginx/start.sh /start.sh
+#RUN chmod +x /start.sh
 #CMD ["/start.sh"]
-
+CMD ["nginx", "-g", "daemon off;"]
