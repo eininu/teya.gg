@@ -29,12 +29,12 @@ export class PbnLinksService {
 
   public async findAll(
     query: Partial<GetPbnLinksQuery> = {},
-  ): Promise<{ [key: string]: string[] }> {
+  ): Promise<{ [key: string]: { [path: string]: string[] } }> {
     const { limit, skip, value } = query;
 
     const qb = this.pbnLinkRepository
-      .createQueryBuilder('pbn-links')
-      .leftJoinAndSelect('pbn-links.links', 'links');
+      .createQueryBuilder('pbnLink')
+      .leftJoinAndSelect('pbnLink.links', 'link');
 
     if (limit) {
       qb.take(limit);
@@ -45,14 +45,21 @@ export class PbnLinksService {
     }
 
     if (value) {
-      qb.andWhere('pbn-links.website LIKE :website', { website: `%${value}%` });
+      qb.andWhere('pbnLink.website LIKE :website', { website: `%${value}%` });
     }
 
-    const [data, total] = await qb.getManyAndCount();
+    const data = await qb.getMany();
 
     const result = {};
     data.forEach((pbnLink) => {
-      result[pbnLink.website] = pbnLink.links.map((link) => link.url);
+      const websiteData = {};
+      pbnLink.links.forEach((link) => {
+        if (!websiteData[link.url]) {
+          websiteData[link.url] = [];
+        }
+        websiteData[link.url].push(link.text);
+      });
+      result[pbnLink.website] = websiteData;
     });
 
     return result;
