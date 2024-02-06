@@ -92,9 +92,9 @@ async function processFile(filePath, siteName, linksConfig) {
       fsBase.mkdirSync(path.dirname(distFilePath), { recursive: true });
     }
     fsBase.writeFileSync(distFilePath, fileContent);
-    console.log(`Processed and written to: ${distFilePath}`);
+    // console.log(`Processed and written to: ${distFilePath}`);
   } catch (error) {
-    console.error(`Error processing ${filePath}: ${error}`);
+    // console.error(`Error processing ${filePath}: ${error}`);
   }
 }
 
@@ -103,7 +103,7 @@ async function copyFile(filePath, siteName) {
   const distFilePath = path.join(distDir, siteName, relativePath);
   await fs.mkdir(path.dirname(distFilePath), { recursive: true });
   await fs.copyFile(filePath, distFilePath);
-  console.log(`Copied to: ${distFilePath}`);
+  // console.log(`Copied to: ${distFilePath}`);
 }
 
 async function processDirectory(directory, siteName, linksConfig) {
@@ -111,9 +111,27 @@ async function processDirectory(directory, siteName, linksConfig) {
   const tasks = dirents.map(async (dirent) => {
     let direntName = dirent.name;
     try {
-      direntName = decodeURIComponent(direntName);
+      const decodedName = decodeURIComponent(direntName);
+      if (direntName !== decodedName) {
+        const oldPath = path.join(directory, direntName);
+        const newPath = path.join(directory, decodedName);
+
+        // Проверка на длину пути
+        if (newPath.length > 260) {
+          // Пример для Windows
+          console.error(`Error: Decoded path is too long: ${newPath}`);
+        } else if (/[*?"<>|]/.test(decodedName)) {
+          // Проверка на спецсимволы для Windows
+          console.error(
+            `Error: Decoded name contains invalid characters: ${decodedName}`,
+          );
+        } else {
+          await fs.rename(oldPath, newPath);
+          direntName = decodedName;
+        }
+      }
     } catch (e) {
-      console.error(`Error decoding directory name '${direntName}': ${e}`);
+      // console.error(`Error decoding directory name '${direntName}': ${e}`);
     }
 
     const fullPath = path.join(directory, direntName);
@@ -146,6 +164,8 @@ async function main() {
     );
   } catch (error) {
     console.error(`Error: ${error}`);
+  } finally {
+    console.log("Websites build finished!");
   }
 }
 
