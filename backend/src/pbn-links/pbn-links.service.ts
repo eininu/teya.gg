@@ -1,20 +1,19 @@
-import { Injectable, Logger} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreatePbnLinkDto } from './dto/create-pbn-link.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import {DeleteResult, Repository} from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { PbnLink } from './entities/pbn-link.entity';
-import {PaginationData} from "../common/types/pagination.type";
-import {GetPbnLinksQuery} from "./types/get-pbn-links.type";
-import {CreateLinkDto} from "../links/dto/create-link.dto";
-import {LinksService} from "../links/links.service";
-import {Link} from "../links/entities/link.entity";
-import {ImportJsonDto} from "./dto/import-json.dto";
-import {Cron, CronExpression} from "@nestjs/schedule";
+import { PaginationData } from '../common/types/pagination.type';
+import { GetPbnLinksQuery } from './types/get-pbn-links.type';
+import { CreateLinkDto } from '../links/dto/create-link.dto';
+import { LinksService } from '../links/links.service';
+import { Link } from '../links/entities/link.entity';
+import { ImportJsonDto } from './dto/import-json.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mega from 'megajs';
-import {getBackNameByTime} from "../common/helper";
-
+import { getBackNameByTime } from '../common/helper';
 
 const CONTENT_DIR = './_websites/content/';
 
@@ -25,97 +24,129 @@ export class PbnLinksService {
   constructor(
     @InjectRepository(PbnLink)
     private pbnLinkRepository: Repository<PbnLink>,
-    private readonly linksService: LinksService
+    private readonly linksService: LinksService,
   ) {}
 
-  async findAll(): Promise<{ [key: string]: string[] }> {
-    return;
-    // const pbnLinks = await this.domainRepository.find();
-    // const result = {};
-    // pbnLinks.forEach((pbnLink) => {
-    //   const link = JSON.stringify(pbnLink.websiteLinks);
-    //   result[pbnLink.website] = pbnLink.websiteLinks;
-    // });
-    // return result;
-  }
-
-
-  public async getAll(query: Partial<GetPbnLinksQuery>): Promise<PaginationData<PbnLink>> {
-    const { limit, skip, value } = query
+  public async findAll(
+    query: Partial<GetPbnLinksQuery> = {},
+  ): Promise<{ [key: string]: string[] }> {
+    const { limit, skip, value } = query;
 
     const qb = this.pbnLinkRepository
-        .createQueryBuilder('pbn-links')
-        .leftJoinAndSelect('pbn-links.links', 'links')
+      .createQueryBuilder('pbn-links')
+      .leftJoinAndSelect('pbn-links.links', 'links');
 
-    if(limit) {
-      qb.take(limit)
+    if (limit) {
+      qb.take(limit);
     }
 
-    if(skip) {
-      qb.skip(skip)
+    if (skip) {
+      qb.skip(skip);
     }
-
 
     if (value) {
       qb.andWhere('pbn-links.website LIKE :website', { website: `%${value}%` });
     }
 
+    const [data, total] = await qb.getManyAndCount();
+
+    const result = {};
+    data.forEach((pbnLink) => {
+      result[pbnLink.website] = pbnLink.links.map((link) => link.url);
+    });
+
+    return result;
+  }
+
+  public async getAll(
+    query: Partial<GetPbnLinksQuery>,
+  ): Promise<PaginationData<PbnLink>> {
+    const { limit, skip, value } = query;
+
+    const qb = this.pbnLinkRepository
+      .createQueryBuilder('pbn-links')
+      .leftJoinAndSelect('pbn-links.links', 'links');
+
+    if (limit) {
+      qb.take(limit);
+    }
+
+    if (skip) {
+      qb.skip(skip);
+    }
+
+    if (value) {
+      qb.andWhere('pbn-links.website LIKE :website', { website: `%${value}%` });
+    }
 
     const [data, total] = await qb.getManyAndCount();
     return { data, total };
   }
 
   public getById(id: string): Promise<PbnLink | undefined> {
-    return this.pbnLinkRepository.findOne({ where: { id }, relations: ['links'] })
+    return this.pbnLinkRepository.findOne({
+      where: { id },
+      relations: ['links'],
+    });
   }
 
-  public async  addNewWebsite(dto: CreatePbnLinkDto): Promise<PbnLink> {
-    return this.pbnLinkRepository.save(dto)
+  public async addNewWebsite(dto: CreatePbnLinkDto): Promise<PbnLink> {
+    return this.pbnLinkRepository.save(dto);
   }
 
-  public async createLink(id: string,dto: CreateLinkDto): Promise<Link | undefined> {
-    const website = await this.getById(id)
+  public async createLink(
+    id: string,
+    dto: CreateLinkDto,
+  ): Promise<Link | undefined> {
+    const website = await this.getById(id);
     if (!website) {
       return;
     }
 
-    const link = { ...dto, website }
-    return this.linksService.save(link)
+    const link = { ...dto, website };
+    return this.linksService.save(link);
   }
 
   public async deleteWebsite(id: string): Promise<DeleteResult | void> {
-    const website = await this.getById(id)
+    const website = await this.getById(id);
 
-    if(!website) {
+    if (!website) {
       return;
     }
-    const { links } = website
+    const { links } = website;
 
-    if(links && links.length > 0) {
+    if (links && links.length > 0) {
       for (const link of links) {
         await this.linksService.deleteLink(link.id);
       }
     }
 
-    return this.pbnLinkRepository.delete(id)
+    return this.pbnLinkRepository.delete(id);
   }
 
-  public async importJSON(dto: ImportJsonDto[]): Promise<PbnLink[]  | undefined> {
-    await this.linksService.deleteAll()
-    await this.pbnLinkRepository.delete({})
+  public async importJSON(
+    dto: ImportJsonDto[],
+  ): Promise<PbnLink[] | undefined> {
+    await this.linksService.deleteAll();
+    await this.pbnLinkRepository.delete({});
 
-    const websites = await Promise.all(dto.map(async ({website}) => this.pbnLinkRepository.save({ website })))
-    const linksObj = dto.reduce((acc, {website, links}) => ({ ...acc, [website]: links }), {})
+    const websites = await Promise.all(
+      dto.map(async ({ website }) => this.pbnLinkRepository.save({ website })),
+    );
+    const linksObj = dto.reduce(
+      (acc, { website, links }) => ({ ...acc, [website]: links }),
+      {},
+    );
     for (const wb of websites) {
-      const links = linksObj[wb.website]
+      const links = linksObj[wb.website];
 
-      if(links && links.length > 0) {
-        const websiteLinks = links.map((l) => ({ ...l, website: wb}))
-        await this.linksService.saveAll(websiteLinks)
+      if (links && links.length > 0) {
+        const websiteLinks = links.map((l) => ({ ...l, website: wb }));
+        await this.linksService.saveAll(websiteLinks);
       }
     }
 
-    return websites
+    return websites;
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
@@ -124,13 +155,12 @@ export class PbnLinksService {
     const PASSWORD = process.env.MEGA_NZ_PASSWORD;
     const initTime = Date.now();
 
-
-    if (!LOGIN || !PASSWORD ) {
+    if (!LOGIN || !PASSWORD) {
       this.logger.warn('MEGA credentials are missing');
       return;
     }
 
-    const backupName = getBackNameByTime('pbn-links')
+    const backupName = getBackNameByTime('pbn-links');
     const { Storage } = { ...mega };
     const storage = new Storage({ email: LOGIN, password: PASSWORD });
 
@@ -138,31 +168,38 @@ export class PbnLinksService {
 
     const sitePath = path.join(CONTENT_DIR);
     const backupPath = path.join(
-        CONTENT_DIR,
-        `../uploads/mega-pbn-links-backup-${initTime}.txt`,
+      CONTENT_DIR,
+      `../uploads/mega-pbn-links-backup-${initTime}.txt`,
     );
 
-    const pbnLinks = await this.getAll({})
+    const pbnLinks = await this.getAll({});
 
-    if(pbnLinks.data.length === 0) {
+    if (pbnLinks.data.length === 0) {
       this.logger.warn('Pbn links is empty');
       return;
     }
 
     const websitesWithoutIds = pbnLinks.data.map((website) => {
-      const  { id, ...restWebsite } = website
+      const { id, ...restWebsite } = website;
 
       if (restWebsite.links) {
         if (restWebsite.links.length > 0) {
-          restWebsite.links = restWebsite.links.map(({url, text} )=> ({url, text})) as Link[];
+          restWebsite.links = restWebsite.links.map(({ url, text }) => ({
+            url,
+            text,
+          })) as Link[];
         }
       }
-      return restWebsite
-    })
+      return restWebsite;
+    });
 
     try {
       if (fs.existsSync(sitePath)) {
-        fs.writeFileSync(backupPath, JSON.stringify(websitesWithoutIds, null, 2), 'utf8');
+        fs.writeFileSync(
+          backupPath,
+          JSON.stringify(websitesWithoutIds, null, 2),
+          'utf8',
+        );
         this.logger.log(`Backup created at: ${backupPath}, going to upload`);
       } else {
         throw new Error('Site path does not exist');
@@ -186,5 +223,4 @@ export class PbnLinksService {
       }
     }
   }
-
 }
