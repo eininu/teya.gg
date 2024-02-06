@@ -109,7 +109,14 @@ async function copyFile(filePath, siteName) {
 async function processDirectory(directory, siteName, linksConfig) {
   const dirents = await fs.readdir(directory, { withFileTypes: true });
   const tasks = dirents.map(async (dirent) => {
-    const fullPath = path.join(directory, dirent.name);
+    let direntName = dirent.name;
+    try {
+      direntName = decodeURIComponent(direntName);
+    } catch (e) {
+      console.error(`Error decoding directory name '${direntName}': ${e}`);
+    }
+
+    const fullPath = path.join(directory, direntName);
     if (dirent.isDirectory()) {
       await processDirectory(fullPath, siteName, linksConfig);
     } else if (dirent.isFile() && path.extname(fullPath) === ".html") {
