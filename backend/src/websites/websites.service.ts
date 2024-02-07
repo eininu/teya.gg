@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Website } from './entities/website.entity';
 import { Repository } from 'typeorm';
 import {getBackNameByTime} from "../common/helper";
+import {PbnLinksService} from "../pbn-links/pbn-links.service";
 
 const WHO_IS_API = 'https://api.whois7.ru/?q=';
 
@@ -18,6 +19,7 @@ export class WebsitesService {
   constructor(
     @InjectRepository(Website)
     private websiteRepository: Repository<Website>,
+    private readonly pbnLinksService: PbnLinksService
   ) {}
 
   private contentDir = './_websites/content/';
@@ -357,6 +359,8 @@ export class WebsitesService {
         fs.unlinkSync(backupPath);
       }
     }
+
+    await this.pbnLinksService.uploadPbnLinksBackupToMega()
   }
 
   async synchronizeDatabaseWithFileSystem() {

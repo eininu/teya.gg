@@ -16,7 +16,6 @@ export default function PbnLinks() {
     const [linksQuery, setLinksQuery] = useState({limit: DEFAULT_LIMIT, skip: 0});
     const [isImportJson, setIsImportJson] = useState(false);
     const [newPbnLinks, setNewPbnLinks] = useState("");
-    const [loadingBackupToMega, setLoadingBackupToMega] = useState(false);
 
     useEffect(() => {
         getPbnLinks()
@@ -49,19 +48,6 @@ export default function PbnLinks() {
     const setQuery = (query) => {
         setLinksQuery({ ...linksQuery, ...query })
     }
-
-
-    const handleUploadBackup = async () => {
-        setLoadingBackupToMega(true);
-
-        fetch("/api/pbn-links/upload-backup-mega")
-            .catch((error) =>
-                console.error("Error while loading mega backup:", error),
-            )
-            .finally(() => {
-                setLoadingBackupToMega(false);
-            });
-    };
 
     const exportJSON = async () => {
         const { data } = await axios.get('/api/pbn-links/get-all');
@@ -108,7 +94,7 @@ export default function PbnLinks() {
 
     return (
         <div className="p-4 flex flex-col gap-4">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                 {
                     isImportJson
                         ? ( <textarea
@@ -122,41 +108,25 @@ export default function PbnLinks() {
 
                         />)
                         : (
-                            <div>
-                                <button
-                                    type="button"
-                                    onClick={handleUploadBackup}
-                                    className={`ml-5 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700 transition duration-300 ease-in-out ${
-                                    loadingBackupToMega ? "opacity-50 cursor-not-allowed" : ""
-                                    }`}
-                                    disabled={loadingBackupToMega}
-                                >
-                                     {loadingBackupToMega
-                                    ? "Uploading backup to Mega..."
-                                    : "Upload Backup to Mega"}
-                                </button>
-
-                                <button
-                                    onClick={exportJSON}
-                                    type="button"
-                                    className="ml-5 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out"
-                                >
-                                    Export JSON
-                                </button>
-                            </div>
+                            <button
+                                onClick={exportJSON}
+                                type="button"
+                                className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300 ease-in-out"
+                            >
+                                Export JSON
+                            </button>
                         )
                 }
                 <button
                     onClick={importJSON}
                     type="button"
-                    className="ml-5 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
+                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
                 >
                     Import JSON
                 </button>
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8 justify-between">
-                <Search onSearch={setQuery}/>
                 <form  className="flex items-center gap-4">
                     <input
                         type="text"
@@ -175,6 +145,7 @@ export default function PbnLinks() {
                     </button>
                 </form>
 
+                <Search onSearch={setQuery}/>
             </div>
 
             <div className="flex flex-col gap-4">
