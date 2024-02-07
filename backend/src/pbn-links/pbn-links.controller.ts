@@ -26,11 +26,6 @@ export class PbnLinksController {
     return this.pbnLinksService.findAll();
   }
 
-  @Get('/upload-backup-mega')
-  public async uploadBackupMega() {
-    return this.pbnLinksService.uploadPbnLinksBackupToMega();
-  }
-
   @Get('/get-all')
   public getAll(
     @Query() query: GetPbnLinksQuery,
