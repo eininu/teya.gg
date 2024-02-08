@@ -1,15 +1,13 @@
-// TODO: There is a problem: Need to unify html code part, cauz if all websites
 // will have same <!-- fJlpVeUpnQpUnJCwBbmRuOaIO --> it will connect them as PBN
 // and it's not good. Need to make it unique for each website.
 
 // And if we willmake this code for websites which not be used in pbn links - it's still bad
 
-// TODO: Add code minification
-
 const fs = require("fs").promises;
 const path = require("path");
 const util = require("util");
 const fsBase = require("fs");
+const { minify } = require("html-minifier");
 
 let requestAttempted = false;
 
@@ -91,11 +89,18 @@ async function processFile(filePath, siteName, linksConfig) {
       }
     }
 
+    const minifiedContent = minify(fileContent, {
+      removeComments: true,
+      collapseWhitespace: true,
+      minifyJS: true,
+      minifyCSS: true,
+    });
+
     const distFilePath = path.join(distDir, siteName, relativePath);
     if (!fsBase.existsSync(path.dirname(distFilePath))) {
       fsBase.mkdirSync(path.dirname(distFilePath), { recursive: true });
     }
-    fsBase.writeFileSync(distFilePath, fileContent);
+    fsBase.writeFileSync(distFilePath, minifiedContent);
     // console.log(`Processed and written to: ${distFilePath}`);
   } catch (error) {
     // console.error(`Error processing ${filePath}: ${error}`);
