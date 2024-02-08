@@ -11,7 +11,6 @@ import { join } from 'path';
 import { PbnLinksModule } from './pbn-links/pbn-links.module';
 import { WebsitesModule } from './websites/websites.module';
 import {LinksModule} from "./links/links.module";
-import {TriggerBuildMiddleware} from "./middlewares/trigger-build.middleware";
 
 @Module({
   imports: [
@@ -29,15 +28,4 @@ import {TriggerBuildMiddleware} from "./middlewares/trigger-build.middleware";
   controllers: [AppController],
   providers: [AppService, SchedulerService],
 })
-export class AppModule {
-  public configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TriggerBuildMiddleware).forRoutes(
-        { path: 'links*', method: RequestMethod.POST },
-        { path: 'links*', method: RequestMethod.PATCH },
-        { path: 'links*', method: RequestMethod.DELETE },
-        { path: 'pbn-links*', method: RequestMethod.POST },
-        { path: 'pbn-links*', method: RequestMethod.PATCH },
-        { path: 'pbn-links*', method: RequestMethod.DELETE },
-    );
-  }
-}
+export class AppModule {}
