@@ -146,6 +146,18 @@ async function processDirectory(directory, siteName, linksConfig, outputDir) {
   await Promise.all(tasks);
 }
 
+async function clearDirectoryContents(directory) {
+  const files = await fse.readdir(directory, { withFileTypes: true });
+  for (const file of files) {
+    const fullPath = path.join(directory, file.name);
+    if (file.isDirectory()) {
+      await fse.remove(fullPath);
+    } else {
+      await fse.unlink(fullPath);
+    }
+  }
+}
+
 async function main() {
   const linksConfig = await getLinks();
   await clearDirectory(tempDistDir);
@@ -163,7 +175,7 @@ async function main() {
         }
       }),
     );
-    await fse.remove(distDir);
+    await clearDirectoryContents(distDir);
     await fse.move(tempDistDir, distDir);
   } catch (error) {
     console.error(`Error: ${error}`);
