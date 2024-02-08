@@ -2,7 +2,8 @@ const fs = require("fs").promises;
 const path = require("path");
 const util = require("util");
 const fsBase = require("fs");
-// const { minify } = require("html-minifier");
+const { minify } = require("html-minifier");
+const fse = require("fs-extra");
 
 let requestAttempted = false;
 
@@ -34,29 +35,18 @@ const getLinks = async () => {
 
 const contentDir = path.resolve("./content");
 const distDir = path.resolve("./dist");
+const tempDistDir = path.resolve("./temp_dist");
 
 async function clearDirectory(directory) {
   try {
-    await fs.access(directory);
-    const files = await fs.readdir(directory);
-    for (const file of files) {
-      const curPath = path.join(directory, file);
-      const stat = await fs.lstat(curPath);
-      if (stat.isDirectory()) {
-        await clearDirectory(curPath);
-        await fs.rmdir(curPath);
-      } else {
-        await fs.unlink(curPath);
-      }
-    }
+    await fse.remove(directory);
+    await fs.mkdir(directory, { recursive: true });
   } catch (error) {
-    if (error.code !== "ENOENT") {
-      throw error;
-    }
+    console.error(`Error clearing directory: ${error}`);
   }
 }
 
-async function processFile(filePath, siteName, linksConfig) {
+async function processFile(filePath, siteName, linksConfig, outputDir) {
   try {
     let fileContent = await fs.readFile(filePath, "utf8");
 
@@ -66,7 +56,6 @@ async function processFile(filePath, siteName, linksConfig) {
 
     let configPath = "/" + relativePath.replace(/\/index\.html$/, "");
     if (configPath === "/index.html") {
-      // Исправление для корректной обработки корневого пути
       configPath = "/";
     }
 
@@ -84,25 +73,22 @@ async function processFile(filePath, siteName, linksConfig) {
       }
     }
 
-    // const minifiedContent = minify(fileContent, {
-    //   removeComments: true,
-    //   collapseWhitespace: true,
-    //   minifyJS: true,
-    //   minifyCSS: true,
-    // });
+    const minifiedContent = minify(fileContent, {
+      removeComments: true,
+      collapseWhitespace: true,
+      minifyJS: true,
+      minifyCSS: true,
+    });
 
-    const distFilePath = path.join(distDir, siteName, relativePath);
-    if (!fsBase.existsSync(path.dirname(distFilePath))) {
-      fsBase.mkdirSync(path.dirname(distFilePath), { recursive: true });
-    }
-    fsBase.writeFileSync(distFilePath, fileContent); // we have minifiedContent
+    const distFilePath = path.join(outputDir, siteName, relativePath);
+    await fse.outputFile(distFilePath, minifiedContent(fileContent)); // we have minifiedContent
     // console.log(`Processed and written to: ${distFilePath}`);
   } catch (error) {
     // console.error(`Error processing ${filePath}: ${error}`);
   }
 }
 
-async function copyFile(filePath, siteName) {
+async function copyFile(filePath, siteName, outputDir) {
   const stats = await fs.stat(filePath);
   const fileSizeInBytes = stats.size;
   if (fileSizeInBytes < 350) {
@@ -111,13 +97,12 @@ async function copyFile(filePath, siteName) {
   }
 
   const relativePath = path.relative(path.join(contentDir, siteName), filePath);
-  const distFilePath = path.join(distDir, siteName, relativePath);
-  await fs.mkdir(path.dirname(distFilePath), { recursive: true });
-  await fs.copyFile(filePath, distFilePath);
+  const distFilePath = path.join(outputDir, siteName, relativePath);
+  await fse.copy(filePath, distFilePath);
   // console.log(`Copied to: ${distFilePath}`);
 }
 
-async function processDirectory(directory, siteName, linksConfig) {
+async function processDirectory(directory, siteName, linksConfig, outputDir) {
   const dirents = await fs.readdir(directory, { withFileTypes: true });
   const tasks = dirents.map(async (dirent) => {
     let direntName = dirent.name;
@@ -127,12 +112,9 @@ async function processDirectory(directory, siteName, linksConfig) {
         const oldPath = path.join(directory, direntName);
         const newPath = path.join(directory, decodedName);
 
-        // Проверка на длину пути
         if (newPath.length > 260) {
-          // Пример для Windows
           console.error(`Error: Decoded path is too long: ${newPath}`);
         } else if (/[*?"<>|]/.test(decodedName)) {
-          // Проверка на спецсимволы для Windows
           console.error(
             `Error: Decoded name contains invalid characters: ${decodedName}`,
           );
@@ -147,11 +129,11 @@ async function processDirectory(directory, siteName, linksConfig) {
 
     const fullPath = path.join(directory, direntName);
     if (dirent.isDirectory()) {
-      await processDirectory(fullPath, siteName, linksConfig);
+      await processDirectory(fullPath, siteName, linksConfig, outputDir);
     } else if (dirent.isFile() && path.extname(fullPath) === ".html") {
-      await processFile(fullPath, siteName, linksConfig);
+      await processFile(fullPath, siteName, linksConfig, outputDir);
     } else {
-      await copyFile(fullPath, siteName);
+      await copyFile(fullPath, siteName, outputDir);
     }
   });
   await Promise.all(tasks);
@@ -159,7 +141,7 @@ async function processDirectory(directory, siteName, linksConfig) {
 
 async function main() {
   const linksConfig = await getLinks();
-  await clearDirectory(distDir);
+  await clearDirectory(tempDistDir);
   try {
     const dirents = await fs.readdir(contentDir, { withFileTypes: true });
     await Promise.all(
@@ -169,10 +151,13 @@ async function main() {
             path.join(contentDir, dirent.name),
             dirent.name,
             linksConfig,
+            tempDistDir,
           );
         }
       }),
     );
+    await fse.remove(distDir);
+    await fse.move(tempDistDir, distDir);
   } catch (error) {
     console.error(`Error: ${error}`);
   } finally {
