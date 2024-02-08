@@ -94,6 +94,7 @@ services:
     volumes:
       - websites-content:/usr/src/app/content
       - websites-build:/usr/src/app/dist
+      - websites-temp-dist:/usr/src/app/temp_dist
 
   websites-filebrowser:
     image: hurlenko/filebrowser
@@ -117,3 +118,4 @@ networks:
 volumes:
   websites-build: {}
   websites-content: {}
+  websites-temp-dist: {}
