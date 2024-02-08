@@ -6,6 +6,7 @@
 
 // TODO: Add code minification
 // TODO: Delete images less than 100B, cauz it's placeholder images from restored archives
+// TODO: Anyway remove html comment <!-- fJlpVeUpnQpUnJCwBbmRuOaIO --> from html files, if link is not found
 
 const fs = require("fs").promises;
 const path = require("path");
