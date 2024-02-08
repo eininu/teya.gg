@@ -106,7 +106,7 @@ async function copyFile(filePath, siteName) {
   const stats = await fs.stat(filePath);
   const fileSizeInBytes = stats.size;
   if (fileSizeInBytes < 350) {
-    console.log(`Skipping broken or placeholder image: ${filePath}`);
+    // console.log(`Skipping broken or placeholder image: ${filePath}`);
     return;
   }
 
