@@ -78,6 +78,13 @@ async function processFile(filePath, siteName, linksConfig, outputDir) {
       collapseWhitespace: true,
       minifyJS: true,
       minifyCSS: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      useShortDoctype: true,
+      removeEmptyAttributes: true,
+      removeRedundantAttributes: true,
+      removeOptionalTags: true,
+      collapseBooleanAttributes: true,
     });
 
     const distFilePath = path.join(outputDir, siteName, relativePath);
