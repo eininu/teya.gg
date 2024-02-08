@@ -66,11 +66,10 @@ async function processFile(filePath, siteName, linksConfig, outputDir) {
           linksConfig[siteName][configPath].join(" "),
         );
       } else {
-        fileContent = fileContent
-          .replace
-          // "<!-- fJlpVeUpnQpUnJCwBbmRuOaIO -->",
-          // "",
-          ();
+        fileContent = fileContent.replace(
+          "<!-- fJlpVeUpnQpUnJCwBbmRuOaIO -->",
+          "",
+        );
       }
     }
 
