@@ -83,7 +83,7 @@ async function processFile(filePath, siteName, linksConfig, outputDir) {
       useShortDoctype: true,
       removeEmptyAttributes: true,
       removeRedundantAttributes: true,
-      removeOptionalTags: true,
+      // removeOptionalTags: true,
       collapseBooleanAttributes: true,
     });
 
