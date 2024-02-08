@@ -54,7 +54,7 @@ export class WebsitesService {
 
   async getSites(): Promise<Website[]> {
     if (!this.hasInitialBuildBeenTriggered) {
-      await this.triggerWebsitesBuild();
+      // await this.triggerWebsitesBuild();
       this.hasInitialBuildBeenTriggered = true;
     }
 
@@ -121,7 +121,7 @@ export class WebsitesService {
       this.logger.log(`Site ${punycodeDomainName} created successfully`);
       if (processZip) {
         await this.synchronizeDatabaseWithFileSystem();
-        await this.triggerWebsitesBuild();
+        // await this.triggerWebsitesBuild();
       }
 
       return `Site ${punycodeDomainName} created successfully`;
@@ -162,7 +162,7 @@ export class WebsitesService {
         `Site ${existingWebsite.domainName} deleted successfully`,
       );
       await this.synchronizeDatabaseWithFileSystem();
-      await this.triggerWebsitesBuild();
+      // await this.triggerWebsitesBuild();
       return `Site ${existingWebsite.domainName} deleted successfully`;
     } catch (error) {
       this.logger.error(`Error deleting site: ${error}`);
