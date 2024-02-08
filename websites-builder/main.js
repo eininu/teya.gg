@@ -81,7 +81,7 @@ async function processFile(filePath, siteName, linksConfig, outputDir) {
     });
 
     const distFilePath = path.join(outputDir, siteName, relativePath);
-    await fse.outputFile(distFilePath, minifiedContent(fileContent)); // we have minifiedContent
+    await fse.outputFile(distFilePath, minifiedContent); // we have minifiedContent
     // console.log(`Processed and written to: ${distFilePath}`);
   } catch (error) {
     // console.error(`Error processing ${filePath}: ${error}`);
