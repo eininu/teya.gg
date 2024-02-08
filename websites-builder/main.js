@@ -5,8 +5,6 @@
 // And if we willmake this code for websites which not be used in pbn links - it's still bad
 
 // TODO: Add code minification
-// TODO: Delete images less than 100B, cauz it's placeholder images from restored archives
-// TODO: Anyway remove html comment <!-- fJlpVeUpnQpUnJCwBbmRuOaIO --> from html files, if link is not found
 
 const fs = require("fs").promises;
 const path = require("path");
@@ -85,6 +83,11 @@ async function processFile(filePath, siteName, linksConfig) {
           "<!-- fJlpVeUpnQpUnJCwBbmRuOaIO -->",
           linksConfig[siteName][configPath].join(" "),
         );
+      } else {
+        fileContent = fileContent.replace(
+          "<!-- fJlpVeUpnQpUnJCwBbmRuOaIO -->",
+          "",
+        );
       }
     }
 
@@ -100,6 +103,13 @@ async function processFile(filePath, siteName, linksConfig) {
 }
 
 async function copyFile(filePath, siteName) {
+  const stats = await fs.stat(filePath);
+  const fileSizeInBytes = stats.size;
+  if (fileSizeInBytes < 350) {
+    console.log(`Skipping broken or placeholder image: ${filePath}`);
+    return;
+  }
+
   const relativePath = path.relative(path.join(contentDir, siteName), filePath);
   const distFilePath = path.join(distDir, siteName, relativePath);
   await fs.mkdir(path.dirname(distFilePath), { recursive: true });
