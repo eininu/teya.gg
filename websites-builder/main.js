@@ -177,7 +177,8 @@ async function main() {
     );
     await clearDirectoryContents(distDir);
     await fse.copy(tempDistDir, distDir, { overwrite: true });
-    await fse.remove(tempDistDir);
+    // await fse.remove(tempDistDir);
+    await clearDirectoryContents(tempDistDir);
   } catch (error) {
     console.error(`Error: ${error}`);
   } finally {
