@@ -74,7 +74,7 @@ async function processFile(filePath, siteName, linksConfig, outputDir) {
     }
 
     const minifiedContent = minify(fileContent, {
-      removeComments: true,
+      // removeComments: true,
       collapseWhitespace: true,
       minifyJS: true,
       minifyCSS: true,
