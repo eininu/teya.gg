@@ -9,8 +9,8 @@ import * as punycode from 'punycode';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Website } from './entities/website.entity';
 import { Repository } from 'typeorm';
-import {getBackNameByTime} from "../common/helper";
-import {PbnLinksService} from "../pbn-links/pbn-links.service";
+import { getBackNameByTime } from '../common/helper';
+import { PbnLinksService } from '../pbn-links/pbn-links.service';
 
 const WHO_IS_API = 'https://api.whois7.ru/?q=';
 
@@ -19,7 +19,7 @@ export class WebsitesService {
   constructor(
     @InjectRepository(Website)
     private websiteRepository: Repository<Website>,
-    private readonly pbnLinksService: PbnLinksService
+    private readonly pbnLinksService: PbnLinksService,
   ) {}
 
   private contentDir = './_websites/content/';
@@ -32,7 +32,7 @@ export class WebsitesService {
       : 'http://localhost:3001';
   private isSynchronizing = false;
 
-  @Cron('0 */15 * * * *')
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async websitesBuild() {
     await this.triggerWebsitesBuild();
   }
@@ -171,7 +171,7 @@ export class WebsitesService {
   }
 
   public saveWebsites(websites: Website[]): Promise<Website[]> {
-    return this.websiteRepository.save(websites)
+    return this.websiteRepository.save(websites);
   }
 
   // export websites as zip archive
@@ -320,7 +320,9 @@ export class WebsitesService {
       return;
     }
 
-    const backupName = getBackNameByTime(`[${process.env.MY_ENVIRONMENT}] backup`)
+    const backupName = getBackNameByTime(
+      `[${process.env.MY_ENVIRONMENT}] backup`,
+    );
     const { Storage } = { ...mega };
     const storage = new Storage({ email: login, password: password });
 
@@ -360,7 +362,7 @@ export class WebsitesService {
       }
     }
 
-    await this.pbnLinksService.uploadPbnLinksBackupToMega()
+    await this.pbnLinksService.uploadPbnLinksBackupToMega();
   }
 
   async synchronizeDatabaseWithFileSystem() {
