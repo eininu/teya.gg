@@ -2,7 +2,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const util = require("util");
 const fsBase = require("fs");
-const { minify } = require("html-minifier");
+// const { minify } = require("html-minifier");
 
 let requestAttempted = false;
 
@@ -84,18 +84,18 @@ async function processFile(filePath, siteName, linksConfig) {
       }
     }
 
-    const minifiedContent = minify(fileContent, {
-      removeComments: true,
-      collapseWhitespace: true,
-      minifyJS: true,
-      minifyCSS: true,
-    });
+    // const minifiedContent = minify(fileContent, {
+    //   removeComments: true,
+    //   collapseWhitespace: true,
+    //   minifyJS: true,
+    //   minifyCSS: true,
+    // });
 
     const distFilePath = path.join(distDir, siteName, relativePath);
     if (!fsBase.existsSync(path.dirname(distFilePath))) {
       fsBase.mkdirSync(path.dirname(distFilePath), { recursive: true });
     }
-    fsBase.writeFileSync(distFilePath, minifiedContent);
+    fsBase.writeFileSync(distFilePath, fileContent); // we have minifiedContent
     // console.log(`Processed and written to: ${distFilePath}`);
   } catch (error) {
     // console.error(`Error processing ${filePath}: ${error}`);
