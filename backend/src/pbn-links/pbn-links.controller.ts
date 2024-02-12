@@ -34,7 +34,7 @@ export class PbnLinksController {
   }
 
   @Post('/add-new-website')
-  public addNewWebsite(@Body() dto: CreatePbnLinkDto): Promise<PbnLink> {
+  public addNewWebsite(@Body() dto: CreatePbnLinkDto): Promise<PbnLink | { error: string }> {
     return this.pbnLinksService.addNewWebsite(dto);
   }
 
