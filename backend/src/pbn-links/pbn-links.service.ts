@@ -1,4 +1,4 @@
-import {ForbiddenException, Injectable, Logger} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreatePbnLinkDto } from './dto/create-pbn-link.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
@@ -97,13 +97,7 @@ export class PbnLinksService {
     });
   }
 
-  public async addNewWebsite(dto: CreatePbnLinkDto): Promise<PbnLink | { error: string }> {
-    const { website } = dto
-    const isExistWebsite = await this.pbnLinkRepository.findOne({ where: { website }})
-    if (isExistWebsite) {
-      return { error: `Domain name ${website} is already exist` };
-    }
-
+  public async addNewWebsite(dto: CreatePbnLinkDto): Promise<PbnLink> {
     return this.pbnLinkRepository.save(dto);
   }
 
@@ -162,6 +156,7 @@ export class PbnLinksService {
     return websites;
   }
 
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   public async uploadPbnLinksBackupToMega() {
     const LOGIN = process.env.MEGA_NZ_LOGIN;
     const PASSWORD = process.env.MEGA_NZ_PASSWORD;
