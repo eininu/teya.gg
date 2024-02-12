@@ -18,6 +18,7 @@ export default function PbnLinks() {
   });
   const [isImportJson, setIsImportJson] = useState(false);
   const [newPbnLinks, setNewPbnLinks] = useState("");
+  const [pbnLinksError, setPbnLinksError] = useState("");
 
   useEffect(() => {
     getPbnLinks();
@@ -41,13 +42,18 @@ export default function PbnLinks() {
       website: newWebsite,
     });
     setIsLoading(false);
-    setNewWebsite("");
+
 
     if (!data) {
       return;
     }
-
-    getPbnLinks();
+    if (data?.error) {
+      setPbnLinksError(data.error)
+    } else {
+      getPbnLinks();
+      setNewWebsite('');
+      setPbnLinksError('')
+    }
   };
 
   const setQuery = (query) => {
@@ -127,14 +133,20 @@ export default function PbnLinks() {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8 justify-between">
-        <form className="flex items-center gap-4">
-          <input
-            type="text"
-            value={newWebsite}
-            onChange={(e) => setNewWebsite(e.target.value)}
-            placeholder="Enter your website domain name"
-            className="p-2 border border-gray-300 rounded"
-          />
+        <form className="flex items-start gap-4">
+          <div className="flex flex-col gap-1">
+            <input
+                type="text"
+                value={newWebsite}
+                onChange={(e) => setNewWebsite(e.target.value)}
+                placeholder="Enter your website domain name"
+                className="p-2 border border-gray-300 rounded"
+            />
+            <span className="text-xs text-red-500">
+              { pbnLinksError }
+            </span>
+          </div>
+
           <button
             type="submit"
             className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 ease-in-out"
