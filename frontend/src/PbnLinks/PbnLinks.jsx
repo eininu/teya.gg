@@ -4,6 +4,7 @@ import PbnLinkCard from "./PbnLinkCard";
 import Search from "../components/Search";
 import Pagination from "../components/Pagination";
 import { saveAs } from "file-saver";
+import punycode from "punycode";
 
 const DEFAULT_LIMIT = 30;
 
@@ -28,7 +29,12 @@ export default function PbnLinks() {
     const { data } = await axios.get("/api/pbn-links/get-all", {
       params: linksQuery,
     });
-    setPbnLinks(data.data);
+    if(!data && data.data.length === 0) {
+      return;
+    }
+
+    const updatedData = data.data.map((d) => ({ ...d, website:  punycode.toUnicode(d.website)}))
+    setPbnLinks(updatedData);
     setTotalPbnLinks(data.total);
   };
 
@@ -68,15 +74,17 @@ export default function PbnLinks() {
 
     const websitesWithoutIds = data.data.map((website) => {
       const { id, ...restWebsite } = website;
+      const wb = { ...restWebsite, website:  punycode.toUnicode(restWebsite.website) }
 
-      if (restWebsite.links && restWebsite.links.length > 0) {
-        restWebsite.links = restWebsite.links.map((link) => {
+
+      if (wb.links && wb.links.length > 0) {
+        wb.links = wb.links.map((link) => {
           const { id: linkId, ...linkRest } = link;
           return linkRest;
         });
       }
 
-      return restWebsite;
+      return wb;
     });
 
     const parsedData = JSON.stringify(websitesWithoutIds, null, 2);
