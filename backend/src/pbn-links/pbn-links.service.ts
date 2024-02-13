@@ -1,4 +1,4 @@
-import {ForbiddenException, Injectable, Logger} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreatePbnLinkDto } from './dto/create-pbn-link.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
@@ -9,11 +9,12 @@ import { CreateLinkDto } from '../links/dto/create-link.dto';
 import { LinksService } from '../links/links.service';
 import { Link } from '../links/entities/link.entity';
 import { ImportJsonDto } from './dto/import-json.dto';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mega from 'megajs';
 import { getBackNameByTime } from '../common/helper';
+import * as punycode from 'punycode';
+
 
 const CONTENT_DIR = './_websites/content/';
 
@@ -97,14 +98,16 @@ export class PbnLinksService {
     });
   }
 
-  public async addNewWebsite(dto: CreatePbnLinkDto): Promise<PbnLink | { error: string }> {
-    const { website } = dto
-    const isExistWebsite = await this.pbnLinkRepository.findOne({ where: { website }})
+  public async addNewWebsite({website}: CreatePbnLinkDto): Promise<PbnLink | { error: string }> {
+    const punycodeDomainName = punycode.toASCII(website);
+
+    const isExistWebsite = await this.pbnLinkRepository.findOne({ where: { website: punycodeDomainName }})
     if (isExistWebsite) {
       return { error: `Domain name ${website} is already exist` };
     }
 
-    return this.pbnLinkRepository.save(dto);
+    const newWebsite = { website: punycodeDomainName}
+    return this.pbnLinkRepository.save(newWebsite);
   }
 
   public async createLink(
@@ -144,14 +147,14 @@ export class PbnLinksService {
     await this.pbnLinkRepository.delete({});
 
     const websites = await Promise.all(
-      dto.map(async ({ website }) => this.pbnLinkRepository.save({ website })),
+      dto.map(async ({ website }) => this.pbnLinkRepository.save({ website: punycode.toASCII(website) })),
     );
     const linksObj = dto.reduce(
       (acc, { website, links }) => ({ ...acc, [website]: links }),
       {},
     );
     for (const wb of websites) {
-      const links = linksObj[wb.website];
+      const links = linksObj[punycode.toUnicode(wb.website)];
 
       if (links && links.length > 0) {
         const websiteLinks = links.map((l) => ({ ...l, website: wb }));
@@ -194,15 +197,17 @@ export class PbnLinksService {
     const websitesWithoutIds = pbnLinks.data.map((website) => {
       const { id, ...restWebsite } = website;
 
-      if (restWebsite.links) {
-        if (restWebsite.links.length > 0) {
-          restWebsite.links = restWebsite.links.map(({ url, text }) => ({
+      const wb = { ...restWebsite, website:  punycode.toUnicode(restWebsite.website) }
+
+      if (wb.links) {
+        if (wb.links.length > 0) {
+          wb.links = wb.links.map(({ url, text }) => ({
             url,
             text,
           })) as Link[];
         }
       }
-      return restWebsite;
+      return wb;
     });
 
     try {
