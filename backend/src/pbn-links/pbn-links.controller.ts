@@ -5,7 +5,8 @@ import {
   Get,
   Param,
   Post,
-  Query, UseInterceptors,
+  Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PbnLinksService } from './pbn-links.service';
 import { PbnLink } from './entities/pbn-link.entity';
@@ -34,7 +35,9 @@ export class PbnLinksController {
   }
 
   @Post('/add-new-website')
-  public addNewWebsite(@Body() dto: CreatePbnLinkDto): Promise<PbnLink> {
+  public addNewWebsite(
+    @Body() dto: CreatePbnLinkDto,
+  ): Promise<PbnLink | { error: string }> {
     return this.pbnLinksService.addNewWebsite(dto);
   }
 
