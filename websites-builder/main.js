@@ -98,15 +98,22 @@ async function processFile(filePath, siteName, linksConfig, outputDir) {
 async function copyFile(filePath, siteName, outputDir) {
   const stats = await fs.stat(filePath);
   const fileSizeInBytes = stats.size;
-  if (fileSizeInBytes < 350) {
-    // console.log(`Skipping broken or placeholder image: ${filePath}`);
+
+  const extension = path.extname(filePath).toLowerCase();
+
+  const isImage = [".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(
+    extension,
+  );
+
+  if (isImage && fileSizeInBytes < 350) {
+    console.log(`Skipping broken or placeholder image: ${filePath}`);
     return;
   }
 
   const relativePath = path.relative(path.join(contentDir, siteName), filePath);
   const distFilePath = path.join(outputDir, siteName, relativePath);
   await fse.copy(filePath, distFilePath);
-  // console.log(`Copied to: ${distFilePath}`);
+  console.log(`Copied to: ${distFilePath}`);
 }
 
 async function processDirectory(directory, siteName, linksConfig, outputDir) {
