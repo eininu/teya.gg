@@ -73,22 +73,22 @@ async function processFile(filePath, siteName, linksConfig, outputDir) {
       }
     }
 
-    const minifiedContent = minify(fileContent, {
-      // removeComments: true,
-      collapseWhitespace: true,
-      minifyJS: true,
-      minifyCSS: true,
-      removeScriptTypeAttributes: true,
-      removeStyleLinkTypeAttributes: true,
-      useShortDoctype: true,
-      removeEmptyAttributes: true,
-      removeRedundantAttributes: true,
-      // removeOptionalTags: true,
-      collapseBooleanAttributes: true,
-    });
+    // const minifiedContent = minify(fileContent, {
+    //   // removeComments: true,
+    //   collapseWhitespace: true,
+    //   minifyJS: true,
+    //   minifyCSS: true,
+    //   removeScriptTypeAttributes: true,
+    //   removeStyleLinkTypeAttributes: true,
+    //   useShortDoctype: true,
+    //   removeEmptyAttributes: true,
+    //   removeRedundantAttributes: true,
+    //   // removeOptionalTags: true,
+    //   collapseBooleanAttributes: true,
+    // });
 
     const distFilePath = path.join(outputDir, siteName, relativePath);
-    await fse.outputFile(distFilePath, minifiedContent); // we have minifiedContent
+    await fse.outputFile(distFilePath, fileContent); // we have minifiedContent
     // console.log(`Processed and written to: ${distFilePath}`);
   } catch (error) {
     // console.error(`Error processing ${filePath}: ${error}`);
