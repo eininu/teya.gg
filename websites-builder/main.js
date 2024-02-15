@@ -106,14 +106,14 @@ async function copyFile(filePath, siteName, outputDir) {
   );
 
   if (isImage && fileSizeInBytes < 350) {
-    console.log(`Skipping broken or placeholder image: ${filePath}`);
+    // console.log(`Skipping broken or placeholder image: ${filePath}`);
     return;
   }
 
   const relativePath = path.relative(path.join(contentDir, siteName), filePath);
   const distFilePath = path.join(outputDir, siteName, relativePath);
   await fse.copy(filePath, distFilePath);
-  console.log(`Copied to: ${distFilePath}`);
+  // console.log(`Copied to: ${distFilePath}`);
 }
 
 async function processDirectory(directory, siteName, linksConfig, outputDir) {
@@ -127,11 +127,11 @@ async function processDirectory(directory, siteName, linksConfig, outputDir) {
         const newPath = path.join(directory, decodedName);
 
         if (newPath.length > 260) {
-          console.error(`Error: Decoded path is too long: ${newPath}`);
+          // console.error(`Error: Decoded path is too long: ${newPath}`);
         } else if (/[*?"<>|]/.test(decodedName)) {
-          console.error(
-            `Error: Decoded name contains invalid characters: ${decodedName}`,
-          );
+          // console.error(
+          //   `Error: Decoded name contains invalid characters: ${decodedName}`,
+          // );
         } else {
           await fs.rename(oldPath, newPath);
           direntName = decodedName;
