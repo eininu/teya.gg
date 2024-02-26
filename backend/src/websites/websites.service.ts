@@ -353,7 +353,6 @@ export class WebsitesService {
       fileStream.pipe(uploadStream);
       const file = await uploadStream.complete;
       this.logger.log('Backup uploaded successfully to MEGA');
-      return 'Backup uploaded successfully to MEGA';
     } catch (error) {
       this.logger.error(`Error in backup process: ${error}`);
     } finally {
