@@ -14,7 +14,7 @@ export default function ExpiredDate({expiredDate, updateDate}) {
     }
 
     const getFormattedDate = (date) => {
-        return format(new Date(date), 'MM.dd.yyyy')
+        return format(new Date(date), 'dd.MM.yyyy')
     }
 
     const openEditable = () => {
@@ -42,6 +42,16 @@ export default function ExpiredDate({expiredDate, updateDate}) {
         updateDate({ expiredAt: parse(newDate, 'dd.MM.yyyy', new Date()) })
         closeEditable()
     }
+
+    const getColorClass = (differenceInDays) => {
+        if (differenceInDays < 3) {
+            return 'text-red-500';
+        } else if (differenceInDays < 7) {
+            return 'text-yellow-400';
+        } else {
+            return 'text-gray-800';
+        }
+    };
 
     return (
         <div >
@@ -75,7 +85,7 @@ export default function ExpiredDate({expiredDate, updateDate}) {
                 <div className="flex gap-2 items-center">
                   <span>
                     {expiredDate !== null
-                        ? (<span> { getDifferenceDays(expiredDate) } days ({ getFormattedDate(expiredDate)} )</span> )
+                        ? (<span className={ getColorClass(getDifferenceDays(expiredDate)) }> { getDifferenceDays(expiredDate) } days ({ getFormattedDate(expiredDate)} )</span> )
                         : 'Empty'}
                   </span>
                     <button  onClick={openEditable}>

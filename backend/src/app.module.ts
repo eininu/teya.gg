@@ -11,6 +11,11 @@ import { join } from 'path';
 import { PbnLinksModule } from './pbn-links/pbn-links.module';
 import { WebsitesModule } from './websites/websites.module';
 import {LinksModule} from "./links/links.module";
+import {MonitoringModule} from "./monitoring/monitoring.module";
+import {TagsModule} from "./tags/tags.module";
+import {TelegramModule} from "./telegram-bot/telegram-bot.module";
+import {TelegramSettingsModule} from "./telegram-settings/telegram-settings.module";
+
 
 @Module({
   imports: [
@@ -21,9 +26,12 @@ import {LinksModule} from "./links/links.module";
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'public'),
     }),
+    TelegramModule,
     PbnLinksModule,
-    LinksModule
-    // WebsitesModule,
+    LinksModule,
+    MonitoringModule,
+    TagsModule,
+    TelegramSettingsModule
   ],
   controllers: [AppController],
   providers: [AppService, SchedulerService],
